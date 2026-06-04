@@ -1,0 +1,129 @@
+export type RelicRarity = "Starter" | "Common" | "Uncommon" | "Rare" | "Boss" | "Shop" | "Event";
+
+export interface Relic {
+  id: string;
+  name: string;
+  rarity: RelicRarity;
+  description: string;
+  flavorText?: string;
+}
+
+export const relics: Relic[] = [
+  // Ironclad Starters
+  { id: "burning_blood", name: "燃烧之血", rarity: "Starter", description: "在战斗结束时，回复 6 点生命。" },
+  // Silent Starters
+  { id: "ring_of_the_snake", name: "蛇之戒指", rarity: "Starter", description: "在每场战斗开始时，额外抽 2 张牌。" },
+  // Defect Starters
+  { id: "cracked_core", name: "破损核心", rarity: "Starter", description: "在每场战斗开始时，生成 1 个闪电充能球。" },
+  // Watcher Starters
+  { id: "pure_water", name: "纯水", rarity: "Starter", description: "在每场战斗开始时，将 1 张奇迹加入手牌。" },
+
+  // Common
+  { id: "akabeko", name: "赤牛", rarity: "Common", description: "你的下一张攻击牌造成 8 点额外伤害。" },
+  { id: "anchor", name: "锚", rarity: "Common", description: "在每场战斗开始时，获得 10 点格挡。" },
+  { id: "ancient_tea_set", name: "古茶具", rarity: "Common", description: "在休息处休息后，下回合开始时获得 2 点能量。" },
+  { id: "art_of_war", name: "战争艺术", rarity: "Common", description: "如果你在你的回合中没有打出过攻击牌，下回合开始时获得 1 点能量。" },
+  { id: "bag_of_marbles", name: "弹珠袋", rarity: "Common", description: "在每场战斗开始时，给予所有敌人 1 层易伤。" },
+  { id: "bag_of_preparation", name: "准备袋", rarity: "Common", description: "在每场战斗开始时，额外抽 2 张牌。" },
+  { id: "blood_vial", name: "血瓶", rarity: "Common", description: "在你的回合开始时，回复 2 点生命。" },
+  { id: "bronze_scales", name: "青铜鳞", rarity: "Common", description: "在每场战斗开始时，获得 3 层荆棘。" },
+  { id: "centennial_puzzle", name: "百年谜题", rarity: "Common", description: "在你第一次受到伤害时，抽 3 张牌。" },
+  { id: "ceramic_fish", name: "陶瓷鱼", rarity: "Common", description: "每当你往牌组中加入一张牌时，获得 9 金币。" },
+  { id: "dream_catcher", name: "捕梦网", rarity: "Common", description: "每当你在休息处休息时，往牌组中加入一张随机牌。" },
+  { id: "happy_flower", name: "快乐小花", rarity: "Common", description: "每 3 个回合开始时，获得 1 点能量。" },
+  { id: "juzu_bracelet", name: "佛珠手链", rarity: "Common", description: "普通战斗不再出现在？房间。" },
+  { id: "lantern", name: "灯笼", rarity: "Common", description: "在每场战斗开始时，获得 1 点能量。" },
+  { id: "maw_bank", name: "大嘴银行", rarity: "Common", description: "每当你爬上楼层时，获得 12 金币。每经过一次商店后失效。" },
+  { id: "meat_on_the_bone", name: "骨上肉", rarity: "Common", description: "在战斗结束时如果你的生命值低于 50%，回复 6 点生命。" },
+  { id: "omamori", name: "御守", rarity: "Common", description: "抵消你接下来获得的 2 个诅咒。" },
+  { id: "orchid", name: "兰花", rarity: "Common", description: "在每场战斗开始时，获得 1 层人工制品。" },
+  { id: "pen_nib", name: "笔尖", rarity: "Common", description: "你每打出 10 张攻击牌，下一张攻击牌造成双倍伤害。" },
+  { id: "potion_belt", name: "药水腰带", rarity: "Common", description: "获得 2 个药水栏位。" },
+  { id: "preserved_insect", name: "保存的昆虫", rarity: "Common", description: "精英敌人减少 25% 生命。" },
+  { id: "regal_pillow", name: "皇家枕头", rarity: "Common", description: "在休息处休息时，额外回复 15 点生命。" },
+  { id: "smiling_mask", name: "微笑面具", rarity: "Common", description: "商人的卡牌移除服务价格变为 50 金币。" },
+  { id: "strawberry", name: "草莓", rarity: "Common", description: "获得 7 点最大生命。" },
+  { id: "the_boot", name: "靴子", rarity: "Common", description: "你每造成一次小于 5 点的攻击伤害，将其提升至 5 点。" },
+  { id: "toy_ornithopter", name: "玩具扑翼机", rarity: "Common", description: "每当你使用一瓶药水时，回复 5 点生命。" },
+  { id: "vajra", name: "金刚杵", rarity: "Common", description: "在每场战斗开始时，获得 1 点力量。" },
+  { id: "war_paint", name: "战绘", rarity: "Common", description: "往牌组中加入 2 张随机技能牌时，将其升级。" },
+
+  // Uncommon
+  { id: "blue_candle", name: "蓝蜡烛", rarity: "Uncommon", description: "你现在可以打出诅咒牌。打出诅咒牌时消耗 1 点生命。" },
+  { id: "bottled_flame", name: "瓶装火焰", rarity: "Uncommon", description: "在卡牌奖励中选择一张攻击牌。每场战斗开始时，这张牌会在手牌中。" },
+  { id: "bottled_lightning", name: "瓶装闪电", rarity: "Uncommon", description: "在卡牌奖励中选择一张技能牌。每场战斗开始时，这张牌会在手牌中。" },
+  { id: "bottled_tornado", name: "瓶装旋风", rarity: "Uncommon", description: "在卡牌奖励中选择一张能力牌。每场战斗开始时，这张牌会在手牌中。" },
+  { id: "darkstone_periapt", name: "暗石护符", rarity: "Uncommon", description: "每当你获得一个诅咒时，获得 6 点最大生命。" },
+  { id: "eternal_feather", name: "永恒羽毛", rarity: "Uncommon", description: "每当你往牌组中加入 5 张牌，回复 3 点生命。" },
+  { id: "frozen_egg", name: "冰冻蛋", rarity: "Uncommon", description: "往牌组中加入能力牌时，将其升级。" },
+  { id: "gremlin_horn", name: "地精号角", rarity: "Uncommon", description: "每当你击杀一个非爪牙敌人，抽 1 张牌并获得 1 点能量。" },
+  { id: "holy_water", name: "圣水", rarity: "Uncommon", description: "获得 3 瓶随机药水。" },
+  { id: "ink_bottle", name: "墨水瓶", rarity: "Uncommon", description: "你每打出 10 张牌，抽 1 张牌。" },
+  { id: "letter_opener", name: "拆信刀", rarity: "Uncommon", description: "你每在同一回合打出 3 张技能牌，对所有敌人造成 5 点伤害。" },
+  { id: "matryoshka", name: "俄罗斯套娃", rarity: "Uncommon", description: "接下来的 2 个非Boss宝箱含有 2 个遗物。" },
+  { id: "meat_on_the_bone_u", name: "肉", rarity: "Uncommon", description: "在战斗结束时如果你的生命值低于 50%，回复 6 点生命。" },
+  { id: "molten_egg", name: "熔岩蛋", rarity: "Uncommon", description: "往牌组中加入攻击牌时，将其升级。" },
+  { id: "mummified_hand", name: "木乃伊之手", rarity: "Uncommon", description: "每当你打出一张能力牌，随机将一张手牌的耗能降低 1。" },
+  { id: "ninja_scroll", name: "忍者卷轴", rarity: "Uncommon", description: "在每场战斗开始时，在手牌中加入 3 张小刀。" },
+  { id: "orange_pellets", name: "橙色药丸", rarity: "Uncommon", description: "在你的回合中，如果你同时打出攻击牌、技能牌和能力牌，移除你身上的所有负面效果。" },
+  { id: "pantograph", name: "缩放仪", rarity: "Uncommon", description: "在Boss战开始时，回复 25 点生命。" },
+  { id: "paper_crane", name: "纸鹤", rarity: "Uncommon", description: "敌人有虚弱时，造成的伤害减少 50% 而不是 25%。" },
+  { id: "paper_frog", name: "纸蛙", rarity: "Uncommon", description: "敌人有易伤时，受到的伤害增加 75% 而不是 50%。" },
+  { id: "pear", name: "梨", rarity: "Uncommon", description: "获得 10 点最大生命。" },
+  { id: "question_card", name: "问号卡", rarity: "Uncommon", description: "卡牌奖励中的选择数量 +1。" },
+  { id: "shuriken", name: "手里剑", rarity: "Uncommon", description: "你每在同一回合打出 3 张攻击牌，获得 1 点力量。" },
+  { id: "singling_bowl", name: "颂钵", rarity: "Uncommon", description: "在休息处休息时，可以将回复生命改为获得 10 金币。" },
+  { id: "strike_dummy", name: "打击木偶", rarity: "Uncommon", description: "名字中带「打击」的牌额外造成 3 点伤害。" },
+  { id: "sundial", name: "日晷", rarity: "Uncommon", description: "每 3 次洗牌后，获得 2 点能量。" },
+  { id: "symbiotic_fungus", name: "共生真菌", rarity: "Uncommon", description: "在你的回合开始时，获得 1 层随机增益。" },
+  { id: "the_courier", name: "信使", rarity: "Uncommon", description: "商人的卡牌、遗物和药水每次被购买后会补货。商品价格降低 20%。" },
+  { id: "toxic_egg", name: "有毒蛋", rarity: "Uncommon", description: "往牌组中加入技能牌时，将其升级。" },
+
+  // Rare
+  { id: "bird_faced_urn", name: "鸟面瓮", rarity: "Rare", description: "每当你打出一张能力牌，回复 2 点生命。" },
+  { id: "calipers", name: "卡钳", rarity: "Rare", description: "在你的回合结束时，不再失去所有格挡，而是失去 15 点格挡。" },
+  { id: "captains_wheel", name: "船长轮", rarity: "Rare", description: "在你的第 3 回合开始时，获得 18 点格挡。" },
+  { id: "dead_branch", name: "枯枝", rarity: "Rare", description: "每当你消耗一张牌，将一张随机牌加入手牌。" },
+  { id: "duvu_doll", name: "杜娃娃", rarity: "Rare", description: "每当你获得一个诅咒，获得 1 点力量和 1 点敏捷。" },
+  { id: "fossilized_helix", name: "化石 helix", rarity: "Rare", description: "防止你第一次受到的生命值损失。" },
+  { id: "gambling_chip", name: "赌博筹码", rarity: "Rare", description: "在每场战斗开始时，丢弃任意数量的手牌，然后抽等量的牌。" },
+  { id: "ginger", name: "姜", rarity: "Rare", description: "在你的回合开始时，获得 1 层人工制品。" },
+  { id: "girya", name: "壶铃", rarity: "Rare", description: "你可以在休息处举起壶铃 3 次以获得 1 点力量。" },
+  { id: "ice_cream", name: "冰淇淋", rarity: "Rare", description: "你的回合结束时的能量不再被清空。" },
+  { id: "incense_burner", name: "香炉", rarity: "Rare", description: "每 6 个回合开始时，获得 1 层无敌。" },
+  { id: "lizard_tail", name: "蜥蜴尾巴", rarity: "Rare", description: "当你要被击败时，回复到最大生命值的 50%。只能触发一次。" },
+  { id: "mango", name: "芒果", rarity: "Rare", description: "获得 14 点最大生命。" },
+  { id: "old_coin", name: "古币", rarity: "Rare", description: "获得 300 金币。" },
+  { id: "peace_pipe", name: "和平烟斗", rarity: "Rare", description: "你可以在休息处移除牌组中的牌。" },
+  { id: "pocketwatch", name: "怀表", rarity: "Rare", description: "如果你在你的回合中打出了少于 3 张牌，下回合开始时抽 3 张牌。" },
+  { id: "prayer_wheel", name: "祈祷轮", rarity: "Rare", description: "普通敌人现在会掉落卡牌奖励。" },
+  { id: "shovel", name: "铲子", rarity: "Rare", description: "你可以在休息处挖取遗物。" },
+  { id: "stone_calendar", name: "石制日历", rarity: "Rare", description: "在你的第 7 回合开始时，对所有敌人造成 52 点伤害。" },
+  { id: "thread_and_needle", name: "针线", rarity: "Rare", description: "在每场战斗开始时，获得 4 层多层护甲。" },
+  { id: "torii", name: "鸟居", rarity: "Rare", description: "你每受到一次小于等于 5 点的攻击伤害，将其变为 1 点。" },
+  { id: "tungsten_rod", name: "钨棒", rarity: "Rare", description: "你每受到一次生命损失，将其减少 1 点。" },
+  { id: "turnip", name: "芜菁", rarity: "Rare", description: "你不能再被添加脆弱。" },
+  { id: "unicorn_stun", name: "独角兽角", rarity: "Rare", description: "在每场战斗开始时，获得 1 层人工制品。" },
+  { id: "wing_boots", name: "飞靴", rarity: "Rare", description: "你可以前往？房间 3 次。" },
+];
+
+export const relicRarityOrder: RelicRarity[] = ["Starter", "Common", "Uncommon", "Rare", "Boss", "Shop", "Event"];
+
+export const rarityLabels: Record<RelicRarity, string> = {
+  Starter: "初始",
+  Common: "普通",
+  Uncommon: "罕见",
+  Rare: "稀有",
+  Boss: "Boss",
+  Shop: "商店",
+  Event: "事件",
+};
+
+export function searchRelics(query: string): Relic[] {
+  const q = query.toLowerCase();
+  return relics.filter(
+    (r) =>
+      r.name.toLowerCase().includes(q) ||
+      r.description.toLowerCase().includes(q)
+  );
+}
