@@ -59,7 +59,13 @@ export default function DeckBuilderPage() {
   const [savePublic, setSavePublic] = useState(true);
   const [cloudDeckId, setCloudDeckId] = useState<string | undefined>();
   const [loadingCloud, setLoadingCloud] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const shareRef = useRef<HTMLDivElement>(null);
+
+  const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
   // Load from URL or cloud on mount
   useEffect(() => {
@@ -187,6 +193,7 @@ export default function DeckBuilderPage() {
     });
     setCurrentDeckId(saved.id);
     setSavedDecks(loadSavedDecks());
+    showToast(`已保存到本地：${saved.name}`, "success");
   };
 
   const handleSaveCloud = async () => {
@@ -201,7 +208,7 @@ export default function DeckBuilderPage() {
           is_public: savePublic,
         });
         setCloudDeckId(updated.id);
-        alert("卡组已更新到云端");
+        showToast(`云端卡组已更新：${updated.name}`, "success");
       } else {
         const created = await createDeck({
           name: deckName || "未命名卡组",
@@ -210,12 +217,12 @@ export default function DeckBuilderPage() {
           is_public: savePublic,
         });
         setCloudDeckId(created.id);
-        alert("卡组已保存到云端");
+        showToast(`已保存到云端：${created.name}`, "success");
       }
       setShowCloudSave(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "保存失败";
-      alert(msg);
+      showToast(msg, "error");
     } finally {
       setLoadingCloud(false);
     }
@@ -745,6 +752,21 @@ export default function DeckBuilderPage() {
       ) : (
         <div className="mt-12 rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-center text-sm text-slate-500">
           将卡组保存到云端后即可查看和发表评论
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-[100] -translate-x-1/2">
+          <div
+            className={`rounded-lg px-6 py-3 text-sm font-medium shadow-xl transition-all ${
+              toast.type === "success"
+                ? "bg-emerald-500 text-white"
+                : "bg-red-500 text-white"
+            }`}
+          >
+            {toast.message}
+          </div>
         </div>
       )}
     </div>
