@@ -1,22 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { characters } from "@/data/cards";
-import { loadSavedDecks, deleteDeck, getDeckCards, type SavedDeck } from "@/lib/deckStorage";
-import { Layers, Trash2, ArrowRight, Swords } from "lucide-react";
+import { getDeckCards } from "@/lib/deckStorage";
+import {
+  getPublicDecks,
+  getLikedDeckIds,
+  toggleLike,
+  type CloudDeck,
+} from "@/lib/supabaseDecks";
+import { getCurrentUser } from "@/lib/auth";
+import { Layers, Heart, Swords, User } from "lucide-react";
 
 export default function DecksPage() {
-  const [savedDecks, setSavedDecks] = useState<SavedDeck[]>(() => loadSavedDecks());
+  const [decks, setDecks] = useState<CloudDeck[]>([]);
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [filterChar, setFilterChar] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const filtered = filterChar === "all"
-    ? savedDecks
-    : savedDecks.filter((d) => d.character === filterChar);
+  useEffect(() => {
+    loadDecks();
+    getCurrentUser().then((u) => setUserId(u?.id ?? null));
+  }, [filterChar]);
 
-  const handleDelete = (id: string) => {
-    deleteDeck(id);
-    setSavedDecks(loadSavedDecks());
+  const loadDecks = async () => {
+    setLoading(true);
+    try {
+      const [publicDecks, liked] = await Promise.all([
+        getPublicDecks(filterChar === "all" ? undefined : filterChar),
+        getLikedDeckIds(),
+      ]);
+      setDecks(publicDecks);
+      setLikedIds(new Set(liked));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLike = async (deckId: string) => {
+    try {
+      const isLiked = await toggleLike(deckId);
+      setLikedIds((prev) => {
+        const next = new Set(prev);
+        if (isLiked) next.add(deckId);
+        else next.delete(deckId);
+        return next;
+      });
+      setDecks((prev) =>
+        prev.map((d) =>
+          d.id === deckId
+            ? { ...d, likes_count: d.likes_count + (isLiked ? 1 : -1) }
+            : d
+        )
+      );
+    } catch {
+      alert("请先登录后再点赞");
+    }
   };
 
   return (
@@ -24,7 +65,7 @@ export default function DecksPage() {
       <div className="mb-6 flex items-center gap-3">
         <h1 className="text-2xl font-bold text-slate-100">卡组广场</h1>
         <span className="rounded-full bg-slate-800 px-3 py-0.5 text-xs text-slate-400">
-          {filtered.length} 套
+          {decks.length} 套
         </span>
       </div>
 
@@ -58,23 +99,18 @@ export default function DecksPage() {
           ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="py-20 text-center text-slate-500">加载中...</div>
+      ) : decks.length === 0 ? (
         <div className="py-20 text-center">
           <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
-          <p className="mb-2 text-slate-500">还没有保存的卡组</p>
-          <Link
-            href="/deckbuilder"
-            className="inline-flex items-center gap-1 text-sm text-amber-400 hover:text-amber-300"
-          >
-            去组卡器创建
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <p className="text-slate-500">暂无公开卡组</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((deck) => {
+          {decks.map((deck) => {
             const charInfo = characters.find((c) => c.id === deck.character);
-            const deckCards = getDeckCards(deck.cardIds);
+            const deckCards = getDeckCards(deck.card_ids);
             const attack = deckCards.filter((c) => c.type === "Attack").length;
             const skill = deckCards.filter((c) => c.type === "Skill").length;
             const power = deckCards.filter((c) => c.type === "Power").length;
@@ -88,25 +124,45 @@ export default function DecksPage() {
                   ).toFixed(1)
                 : "0";
 
+            const isLiked = likedIds.has(deck.id);
+            const authorName = deck.profiles?.display_name ?? "匿名用户";
+
             return (
               <div
                 key={deck.id}
                 className="group rounded-xl border border-slate-800 bg-slate-900/50 p-5 transition hover:border-slate-700"
               >
                 <div className="mb-3 flex items-start justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div
-                      className="h-3 w-3 rounded-full"
+                      className="h-3 w-3 shrink-0 rounded-full"
                       style={{ backgroundColor: charInfo?.color }}
                     />
-                    <h3 className="font-bold text-slate-100">{deck.name}</h3>
+                    <h3 className="truncate font-bold text-slate-100">{deck.name}</h3>
                   </div>
                   <button
-                    onClick={() => handleDelete(deck.id)}
-                    className="rounded p-1 text-slate-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
+                    onClick={() => handleLike(deck.id)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition ${
+                      isLiked
+                        ? "bg-rose-500/10 text-rose-400"
+                        : "bg-slate-800 text-slate-500 hover:text-rose-400"
+                    }`}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Heart
+                      className="h-3.5 w-3.5"
+                      fill={isLiked ? "currentColor" : "none"}
+                    />
+                    {deck.likes_count}
                   </button>
+                </div>
+
+                <div className="mb-2 flex items-center gap-1.5 text-xs text-slate-500">
+                  <User className="h-3 w-3" />
+                  <span>{authorName}</span>
+                  <span>·</span>
+                  <span>
+                    {new Date(deck.created_at).toLocaleDateString("zh-CN")}
+                  </span>
                 </div>
 
                 <div className="mb-3 flex flex-wrap gap-2 text-xs text-slate-400">
@@ -142,17 +198,7 @@ export default function DecksPage() {
                 </div>
 
                 <Link
-                  href={`/deckbuilder?deck=${btoa(
-                    unescape(
-                      encodeURIComponent(
-                        JSON.stringify({
-                          n: deck.name,
-                          c: deck.character,
-                          cards: deck.cardIds,
-                        })
-                      )
-                    )
-                  )}`}
+                  href={`/deckbuilder?cloud=${deck.id}`}
                   className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700"
                 >
                   <Swords className="h-4 w-4" />

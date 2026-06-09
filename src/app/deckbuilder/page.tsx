@@ -31,6 +31,8 @@ import {
   decodeDeckFromUrl,
   type SavedDeck,
 } from "@/lib/deckStorage";
+import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import { createDeck, updateDeck, getDeckById, type CloudDeck } from "@/lib/supabaseDecks";
 
 const typeLabels: Record<string, string> = {
   Attack: "攻击",
@@ -52,17 +54,41 @@ export default function DeckBuilderPage() {
   const [currentDeckId, setCurrentDeckId] = useState<string | undefined>();
   const [showSwitchWarning, setShowSwitchWarning] = useState<Character | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [showCloudSave, setShowCloudSave] = useState(false);
+  const [savePublic, setSavePublic] = useState(true);
+  const [cloudDeckId, setCloudDeckId] = useState<string | undefined>();
+  const [loadingCloud, setLoadingCloud] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
 
-  // Load from URL on mount
+  // Load from URL or cloud on mount
   useEffect(() => {
-    const urlDeck = decodeDeckFromUrl(window.location.search);
-    if (urlDeck) {
-      queueMicrotask(() => {
-        setSelectedCharacter(urlDeck.character);
-        setDeckName(urlDeck.name);
-        setDeck(getDeckCards(urlDeck.cardIds));
+    getCurrentUser().then(setUser);
+
+    const params = new URLSearchParams(window.location.search);
+    const cloudId = params.get("cloud");
+
+    if (cloudId) {
+      // Load from cloud
+      setLoadingCloud(true);
+      getDeckById(cloudId).then((cloudDeck) => {
+        if (cloudDeck) {
+          setSelectedCharacter(cloudDeck.character);
+          setDeckName(cloudDeck.name);
+          setDeck(getDeckCards(cloudDeck.card_ids));
+          setCloudDeckId(cloudDeck.id);
+        }
+        setLoadingCloud(false);
       });
+    } else {
+      const urlDeck = decodeDeckFromUrl(window.location.search);
+      if (urlDeck) {
+        queueMicrotask(() => {
+          setSelectedCharacter(urlDeck.character);
+          setDeckName(urlDeck.name);
+          setDeck(getDeckCards(urlDeck.cardIds));
+        });
+      }
     }
   }, []);
 
@@ -151,7 +177,7 @@ export default function DeckBuilderPage() {
     return groups;
   }, [deck]);
 
-  const handleSave = () => {
+  const handleSaveLocal = () => {
     if (deck.length === 0) return;
     const saved = saveDeck({
       id: currentDeckId,
@@ -163,11 +189,44 @@ export default function DeckBuilderPage() {
     setSavedDecks(loadSavedDecks());
   };
 
+  const handleSaveCloud = async () => {
+    if (deck.length === 0 || !user) return;
+    setLoadingCloud(true);
+    try {
+      if (cloudDeckId) {
+        const updated = await updateDeck(cloudDeckId, {
+          name: deckName || "未命名卡组",
+          character: selectedCharacter,
+          card_ids: deck.map((c) => c.id),
+          is_public: savePublic,
+        });
+        setCloudDeckId(updated.id);
+        alert("卡组已更新到云端");
+      } else {
+        const created = await createDeck({
+          name: deckName || "未命名卡组",
+          character: selectedCharacter,
+          card_ids: deck.map((c) => c.id),
+          is_public: savePublic,
+        });
+        setCloudDeckId(created.id);
+        alert("卡组已保存到云端");
+      }
+      setShowCloudSave(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "保存失败";
+      alert(msg);
+    } finally {
+      setLoadingCloud(false);
+    }
+  };
+
   const handleLoad = (saved: SavedDeck) => {
     setSelectedCharacter(saved.character);
     setDeckName(saved.name);
     setDeck(getDeckCards(saved.cardIds));
     setCurrentDeckId(saved.id);
+    setCloudDeckId(undefined);
     setShowSaved(false);
     const url = encodeDeckToUrl({
       name: saved.name,
@@ -294,6 +353,63 @@ export default function DeckBuilderPage() {
         </div>
       )}
 
+      {/* Cloud Save Modal */}
+      {showCloudSave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-slate-100">
+              {cloudDeckId ? "更新云端卡组" : "保存到云端"}
+            </h3>
+            <div className="mb-4 rounded-lg border border-slate-800 bg-slate-950/50 p-3 text-sm text-slate-400">
+              <p className="mb-1">
+                <span className="text-slate-200">{deckName || "未命名卡组"}</span>
+              </p>
+              <p>
+                {deck.length} 张卡牌 · {characters.find((c) => c.id === selectedCharacter)?.name}
+              </p>
+            </div>
+            <div className="mb-6 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="public"
+                checked={savePublic}
+                onChange={(e) => setSavePublic(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-amber-500"
+              />
+              <label htmlFor="public" className="text-sm text-slate-300">
+                公开到卡组广场
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCloudSave(false)}
+                className="flex-1 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSaveCloud}
+                disabled={loadingCloud}
+                className="flex-1 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-50"
+              >
+                {loadingCloud ? "保存中..." : cloudDeckId ? "更新" : "保存"}
+              </button>
+            </div>
+            <div className="mt-3 text-center">
+              <button
+                onClick={() => {
+                  handleSaveLocal();
+                  setShowCloudSave(false);
+                }}
+                className="text-xs text-slate-500 hover:text-slate-300"
+              >
+                仅保存到本地
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Character Select */}
       <div className="mb-6 flex flex-wrap gap-2">
         {characters
@@ -364,13 +480,19 @@ export default function DeckBuilderPage() {
                 加载
               </button>
               <button
-                onClick={handleSave}
+                onClick={() => {
+                  if (user) {
+                    setShowCloudSave(true);
+                  } else {
+                    handleSaveLocal();
+                  }
+                }}
                 disabled={deck.length === 0}
                 className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-emerald-400 transition hover:bg-emerald-500/10 disabled:opacity-50"
                 title="保存卡组"
               >
                 <Save className="h-3 w-3" />
-                {currentDeckId ? "更新" : "保存"}
+                {cloudDeckId ? "更新" : "保存"}
               </button>
               <button
                 onClick={clearDeck}
@@ -616,9 +738,15 @@ export default function DeckBuilderPage() {
       </div>
 
       {/* Comments */}
-      <div className="mt-12">
-        <CommentSection deckKey={`${selectedCharacter}-${deckName || "未命名"}`} />
-      </div>
+      {cloudDeckId ? (
+        <div className="mt-12">
+          <CommentSection deckId={cloudDeckId} />
+        </div>
+      ) : (
+        <div className="mt-12 rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-center text-sm text-slate-500">
+          将卡组保存到云端后即可查看和发表评论
+        </div>
+      )}
     </div>
   );
 }
