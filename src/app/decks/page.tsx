@@ -20,6 +20,7 @@ export default function DecksPage() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [filterChar, setFilterChar] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (tab === "cloud") {
@@ -27,11 +28,13 @@ export default function DecksPage() {
     } else {
       setLocalDecks(loadSavedDecks());
       setLoading(false);
+      setError(null);
     }
   }, [filterChar, tab]);
 
   const loadCloudDecks = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [publicDecks, liked] = await Promise.all([
         getPublicDecks(filterChar === "all" ? undefined : filterChar),
@@ -39,6 +42,10 @@ export default function DecksPage() {
       ]);
       setCloudDecks(publicDecks);
       setLikedIds(new Set(liked));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "加载失败";
+      setError(msg);
+      console.error("加载云端卡组失败:", err);
     } finally {
       setLoading(false);
     }
@@ -134,6 +141,18 @@ export default function DecksPage() {
 
       {loading ? (
         <div className="py-20 text-center text-slate-500">加载中...</div>
+      ) : error ? (
+        <div className="py-20 text-center">
+          <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
+          <p className="mb-2 text-red-400">加载失败</p>
+          <p className="text-xs text-slate-600">{error}</p>
+          <button
+            onClick={loadCloudDecks}
+            className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+          >
+            重试
+          </button>
+        </div>
       ) : displayedDecks.length === 0 ? (
         <div className="py-20 text-center">
           <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
