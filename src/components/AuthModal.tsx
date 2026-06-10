@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signUp, signIn } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import { X, User, Lock, Mail } from "lucide-react";
 
 interface AuthModalProps {
@@ -11,6 +12,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
     try {
       if (mode === "register") {
         if (!displayName.trim()) {
-          setError("请输入昵称");
+          setError(t.auth_error_required);
           setLoading(false);
           return;
         }
@@ -42,13 +44,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
       setPassword("");
       setDisplayName("");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "操作失败";
+      const message = err instanceof Error ? err.message : "";
       if (message.includes("already registered")) {
-        setError("该邮箱已注册");
+        setError(t.auth_error_registered);
       } else if (message.includes("Invalid login")) {
-        setError("邮箱或密码错误");
+        setError(t.auth_error_invalid);
       } else if (message.includes("Password should be")) {
-        setError("密码长度至少6位");
+        setError(t.auth_error_password_length);
       } else {
         setError(message);
       }
@@ -68,7 +70,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         </button>
 
         <h2 className="mb-6 text-xl font-bold text-slate-100">
-          {mode === "login" ? "登录" : "注册"}
+          {mode === "login" ? t.auth_login : t.auth_register}
         </h2>
 
         {error && (
@@ -83,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
               <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
-                placeholder="昵称"
+                placeholder={t.auth_nickname}
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
@@ -95,7 +97,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="email"
-              placeholder="邮箱"
+              placeholder={t.auth_email}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -107,7 +109,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="password"
-              placeholder="密码"
+              placeholder={t.auth_password}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -121,12 +123,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             disabled={loading}
             className="w-full rounded-lg bg-amber-500 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-50"
           >
-            {loading ? "请稍候..." : mode === "login" ? "登录" : "注册"}
+            {loading ? "..." : mode === "login" ? t.auth_submit_login : t.auth_submit_register}
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-slate-500">
-          {mode === "login" ? "还没有账号？" : "已有账号？"}
+          {mode === "login" ? t.auth_no_account : t.auth_has_account}
           <button
             onClick={() => {
               setMode(mode === "login" ? "register" : "login");
@@ -134,7 +136,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             }}
             className="ml-1 text-amber-400 hover:text-amber-300"
           >
-            {mode === "login" ? "立即注册" : "去登录"}
+            {mode === "login" ? t.auth_go_register : t.auth_go_login}
           </button>
         </p>
       </div>

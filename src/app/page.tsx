@@ -1,17 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import { Library, Swords, Share2, Sparkles } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Home() {
+  const { t } = useTranslation();
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       {/* Hero */}
       <div className="mb-16 text-center">
         <h1 className="mb-4 text-4xl font-bold text-slate-50 md:text-5xl">
-          杀戮尖塔2{" "}
-          <span className="text-amber-400">卡组构建器</span>
+          {t.home_title_prefix}{" "}
+          <span className="text-amber-400">{t.home_title_suffix}</span>
         </h1>
         <p className="mx-auto max-w-2xl text-lg text-slate-400">
-          在线构建、分享和探索杀戮尖塔2卡组。完整的卡牌数据库，便捷的组卡工具，一键生成分享图。
+          {t.home_subtitle}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link
@@ -19,14 +24,14 @@ export default function Home() {
             className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 font-semibold text-slate-950 transition hover:bg-amber-400"
           >
             <Swords className="h-5 w-5" />
-            开始组卡
+            {t.home_start}
           </Link>
           <Link
             href="/cards"
             className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-6 py-3 font-semibold text-slate-200 transition hover:bg-slate-700"
           >
             <Library className="h-5 w-5" />
-            浏览卡牌
+            {t.home_browse}
           </Link>
         </div>
       </div>
@@ -35,18 +40,18 @@ export default function Home() {
       <div className="grid gap-6 md:grid-cols-3">
         <FeatureCard
           icon={<Library className="h-6 w-6 text-sky-400" />}
-          title="完整卡牌库"
-          desc="覆盖全部角色卡牌、遗物、药水，支持多维度筛选和搜索。"
+          title={t.home_feature_cards}
+          desc={t.home_feature_cards_desc}
         />
         <FeatureCard
           icon={<Swords className="h-6 w-6 text-rose-400" />}
-          title="在线组卡器"
-          desc="拖拽式组卡，实时查看卡组曲线和核心数据。"
+          title={t.home_feature_builder}
+          desc={t.home_feature_builder_desc}
         />
         <FeatureCard
           icon={<Share2 className="h-6 w-6 text-emerald-400" />}
-          title="一键分享"
-          desc="生成精美分享图，直接发到贴吧、Reddit 或 Discord。"
+          title={t.home_feature_share}
+          desc={t.home_feature_share_desc}
         />
       </div>
 
@@ -54,20 +59,20 @@ export default function Home() {
       <div className="mt-16 rounded-xl border border-slate-800 bg-slate-900/50 p-8">
         <div className="flex items-center gap-3 mb-4">
           <Sparkles className="h-5 w-5 text-amber-400" />
-          <h2 className="text-xl font-bold text-slate-100">即将上线</h2>
+          <h2 className="text-xl font-bold text-slate-100">{t.home_coming_soon}</h2>
         </div>
         <ul className="space-y-2 text-slate-400">
           <li className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-            卡组广场 — 浏览和点赞社区热门卡组
+            {t.home_coming_deck_plaza}
           </li>
           <li className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-            种子分享 — 分享有趣的随机种子
+            {t.home_coming_seeds}
           </li>
           <li className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-            攻略文章 — 流派讲解和进阶技巧
+            {t.home_coming_guides}
           </li>
         </ul>
       </div>

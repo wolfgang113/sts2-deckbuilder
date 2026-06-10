@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { signOut, type AuthUser } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import { User, LogOut, FolderHeart, ChevronDown } from "lucide-react";
 
 interface UserMenuProps {
@@ -11,6 +12,7 @@ interface UserMenuProps {
 }
 
 export default function UserMenu({ user, onLogout }: UserMenuProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -59,14 +61,14 @@ export default function UserMenu({ user, onLogout }: UserMenuProps) {
             className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
           >
             <FolderHeart className="h-4 w-4" />
-            我的卡组
+            {t.nav_my_decks}
           </Link>
           <button
             onClick={handleSignOut}
             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 transition hover:bg-slate-800"
           >
             <LogOut className="h-4 w-4" />
-            退出登录
+            {t.nav_logout}
           </button>
         </div>
       )}

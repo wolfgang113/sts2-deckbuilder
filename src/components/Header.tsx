@@ -15,23 +15,15 @@ import {
   LogIn,
 } from "lucide-react";
 import { getCurrentUser, onAuthStateChange, type AuthUser } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
 import SponsorButton from "./SponsorButton";
-
-const navItems = [
-  { href: "/", label: "首页", icon: LayoutGrid },
-  { href: "/cards", label: "卡牌库", icon: Library },
-  { href: "/deckbuilder", label: "组卡器", icon: Swords },
-  { href: "/decks", label: "卡组广场", icon: Layers },
-  { href: "/relics", label: "遗物", icon: Diamond },
-  { href: "/potions", label: "药水", icon: FlaskConical },
-  { href: "/bosses", label: "Boss", icon: Shield },
-  { href: "/feedback", label: "反馈", icon: MessageSquarePlus },
-];
+import LanguageSwitch from "./LanguageSwitch";
 
 export default function Header() {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -44,6 +36,17 @@ export default function Header() {
     const sub = onAuthStateChange((u) => setUser(u));
     return () => sub.unsubscribe();
   }, []);
+
+  const navItems = [
+    { href: "/", label: t.nav_home, icon: LayoutGrid },
+    { href: "/cards", label: t.nav_cards, icon: Library },
+    { href: "/deckbuilder", label: t.nav_deckbuilder, icon: Swords },
+    { href: "/decks", label: t.nav_decks, icon: Layers },
+    { href: "/relics", label: t.nav_relics, icon: Diamond },
+    { href: "/potions", label: t.nav_potions, icon: FlaskConical },
+    { href: "/bosses", label: t.nav_bosses, icon: Shield },
+    { href: "/feedback", label: t.nav_feedback, icon: MessageSquarePlus },
+  ];
 
   return (
     <>
@@ -76,9 +79,10 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Sponsor + Auth */}
+          {/* Language + Sponsor + Auth */}
           {authReady && (
             <div className="ml-2 flex shrink-0 items-center gap-2">
+              <LanguageSwitch />
               <SponsorButton />
               {user ? (
                 <UserMenu
@@ -91,7 +95,7 @@ export default function Header() {
                   className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-800 md:text-sm"
                 >
                   <LogIn className="h-4 w-4" />
-                  <span className="hidden sm:inline">登录</span>
+                  <span className="hidden sm:inline">{t.nav_login}</span>
                 </button>
               )}
             </div>
