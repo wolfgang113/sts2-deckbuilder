@@ -3,7 +3,7 @@
 import { Heart } from "lucide-react";
 
 // TODO: 把下面的链接换成你的真实爱发电主页
-const AFDIAN_URL = "https://afdian.com/a/你的用户名";
+const AFDIAN_URL = "https://ifdian.net/a/wolfgang113";
 
 export default function SponsorButton() {
   return (

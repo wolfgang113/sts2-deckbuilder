@@ -34,7 +34,7 @@ export default function RootLayout({
         <footer className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
           <p className="mb-2">STS2 Deck Builder · 杀戮尖塔2 卡组构建器</p>
           <p className="mb-3">
-            <a href="https://afdian.com/a/你的用户名" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300">
+            <a href="https://ifdian.net/a/wolfgang113" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300">
               在爱发电支持我们
             </a>
           </p>
