@@ -129,7 +129,7 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
                     <User className="h-3 w-3 text-slate-400" />
                   </div>
                   <span className="text-sm font-medium text-slate-200">
-                    {comment.profiles?.display_name || "匿名用户"}
+                    {comment.display_name || "匿名用户"}
                   </span>
                   <span className="text-xs text-slate-600">
                     {formatTime(comment.created_at)}

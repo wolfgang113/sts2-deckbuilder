@@ -9,9 +9,9 @@ export interface CloudDeck {
   card_ids: string[];
   is_public: boolean;
   likes_count: number;
+  display_name: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: { display_name: string };
 }
 
 export async function createDeck(deck: {
@@ -23,6 +23,12 @@ export async function createDeck(deck: {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("未登录");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userData.user.id)
+    .single();
+
   const { data, error } = await supabase
     .from("decks")
     .insert({
@@ -31,6 +37,7 @@ export async function createDeck(deck: {
       character: deck.character,
       card_ids: deck.card_ids,
       is_public: deck.is_public,
+      display_name: profile?.display_name ?? null,
     })
     .select()
     .single();
@@ -81,7 +88,7 @@ export async function getMyDecks(): Promise<CloudDeck[]> {
 export async function getPublicDecks(character?: string): Promise<CloudDeck[]> {
   let query = supabase
     .from("decks")
-    .select("*, profiles(display_name)")
+    .select("*")
     .eq("is_public", true)
     .order("created_at", { ascending: false });
 
@@ -97,7 +104,7 @@ export async function getPublicDecks(character?: string): Promise<CloudDeck[]> {
 export async function getDeckById(id: string): Promise<CloudDeck | null> {
   const { data, error } = await supabase
     .from("decks")
-    .select("*, profiles(display_name)")
+    .select("*")
     .eq("id", id)
     .single();
 

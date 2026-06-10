@@ -209,7 +209,7 @@ function CloudDeckList({
             : "0";
 
         const isLiked = likedIds.has(deck.id);
-        const authorName = deck.profiles?.display_name ?? "匿名用户";
+        const authorName = deck.display_name ?? "匿名用户";
 
         return (
           <div
