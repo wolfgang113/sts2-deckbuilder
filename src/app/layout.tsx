@@ -33,6 +33,11 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <footer className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
           <p className="mb-2">STS2 Deck Builder · 杀戮尖塔2 卡组构建器</p>
+          <p className="mb-3">
+            <a href="https://afdian.com/a/你的用户名" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300">
+              在爱发电支持我们
+            </a>
+          </p>
           <p className="max-w-2xl mx-auto text-xs text-slate-600 leading-relaxed px-4">
             本网站为粉丝制作的非官方辅助工具，与 Mega Crit Games 及 Slay the Spire 官方无关。
             游戏数据版权归 Mega Crit Games 所有。本站内容仅供学习交流使用。
