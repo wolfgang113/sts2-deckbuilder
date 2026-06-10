@@ -17,6 +17,7 @@ import {
 import { getCurrentUser, onAuthStateChange, type AuthUser } from "@/lib/auth";
 import AuthModal from "./AuthModal";
 import UserMenu from "./UserMenu";
+import SponsorButton from "./SponsorButton";
 
 const navItems = [
   { href: "/", label: "首页", icon: LayoutGrid },
@@ -75,9 +76,10 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Auth */}
+          {/* Sponsor + Auth */}
           {authReady && (
-            <div className="ml-2 shrink-0">
+            <div className="ml-2 flex shrink-0 items-center gap-2">
+              <SponsorButton />
               {user ? (
                 <UserMenu
                   user={user}
