@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Swords,
   Library,
@@ -13,6 +13,7 @@ import {
   Diamond,
   Shield,
   LogIn,
+  ArrowLeft,
 } from "lucide-react";
 import { getCurrentUser, onAuthStateChange, type AuthUser } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
@@ -23,6 +24,7 @@ import LanguageSwitch from "./LanguageSwitch";
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useTranslation();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -52,6 +54,15 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center px-3 md:px-4">
+          {pathname !== "/" && (
+            <button
+              onClick={() => router.back()}
+              className="mr-2 flex shrink-0 items-center rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+              title="返回"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+          )}
           <Link
             href="/"
             className="mr-4 flex shrink-0 items-center gap-1.5 font-bold text-base text-amber-400 md:mr-8 md:text-lg md:gap-2"
