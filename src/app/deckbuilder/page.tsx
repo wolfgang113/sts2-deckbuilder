@@ -33,15 +33,10 @@ import {
 } from "@/lib/deckStorage";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { createDeck, updateDeck, getDeckById, type CloudDeck } from "@/lib/supabaseDecks";
-
-const typeLabels: Record<string, string> = {
-  Attack: "攻击",
-  Skill: "技能",
-  Power: "能力",
-  Curse: "诅咒",
-};
+import { useTranslation } from "@/lib/i18n";
 
 export default function DeckBuilderPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [selectedCharacter, setSelectedCharacter] = useState<Character>("Ironclad");
   const [deck, setDeck] = useState<Card[]>([]);
@@ -187,13 +182,13 @@ export default function DeckBuilderPage() {
     if (deck.length === 0) return;
     const saved = saveDeck({
       id: currentDeckId,
-      name: deckName || "未命名卡组",
+      name: deckName || t.builder_unnamed,
       character: selectedCharacter,
       cardIds: deck.map((c) => c.id),
     });
     setCurrentDeckId(saved.id);
     setSavedDecks(loadSavedDecks());
-    showToast(`已保存到本地：${saved.name}`, "success");
+    showToast(`${t.save_toast_local}：${saved.name}`, "success");
   };
 
   const handleSaveCloud = async () => {
@@ -202,26 +197,26 @@ export default function DeckBuilderPage() {
     try {
       if (cloudDeckId) {
         const updated = await updateDeck(cloudDeckId, {
-          name: deckName || "未命名卡组",
+          name: deckName || t.builder_unnamed,
           character: selectedCharacter,
           card_ids: deck.map((c) => c.id),
           is_public: savePublic,
         });
         setCloudDeckId(updated.id);
-        showToast(`云端卡组已更新：${updated.name}`, "success");
+        showToast(`${t.save_toast_cloud_update}：${updated.name}`, "success");
       } else {
         const created = await createDeck({
-          name: deckName || "未命名卡组",
+          name: deckName || t.builder_unnamed,
           character: selectedCharacter,
           card_ids: deck.map((c) => c.id),
           is_public: savePublic,
         });
         setCloudDeckId(created.id);
-        showToast(`已保存到云端：${created.name}`, "success");
+        showToast(`${t.save_toast_cloud_new}：${created.name}`, "success");
       }
       setShowCloudSave(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "保存失败";
+      const msg = err instanceof Error ? err.message : t.save_toast_error;
       showToast(msg, "error");
     } finally {
       setLoadingCloud(false);
@@ -262,12 +257,19 @@ export default function DeckBuilderPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const typeLabels: Record<string, string> = {
+    Attack: t.type_attack,
+    Skill: t.type_skill,
+    Power: t.type_power,
+    Curse: t.type_curse,
+  };
+
   const exportText = () => {
     const lines: string[] = [];
-    lines.push(`【${deckName || "未命名卡组"}】`);
-    lines.push(`角色：${characterInfo?.name}`);
-    lines.push(`卡牌数：${deck.length} 张`);
-    lines.push(`攻击 ${stats.attack} | 技能 ${stats.skill} | 能力 ${stats.power} | 均费 ${stats.avgCost}`);
+    lines.push(t.export_header.replace("{name}", deckName || t.builder_unnamed));
+    lines.push(`${t.export_character}：${characterInfo?.name}`);
+    lines.push(`${t.export_card_count}：${deck.length}${t.unit_card}`);
+    lines.push(`${t.type_attack} ${stats.attack} | ${t.type_skill} ${stats.skill} | ${t.type_power} ${stats.power} | ${t.builder_stat_avg_cost} ${stats.avgCost}`);
     lines.push("");
     const byType: Record<string, Card[]> = {};
     deck.forEach((c) => {
@@ -308,14 +310,14 @@ export default function DeckBuilderPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-100">组卡器</h1>
+        <h1 className="text-2xl font-bold text-slate-100">{t.builder_title}</h1>
         <button
           onClick={() => setShowShortcuts(!showShortcuts)}
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-500 transition hover:text-slate-300"
-          title="快捷键"
+          title={t.builder_shortcuts}
         >
           <Keyboard className="h-3.5 w-3.5" />
-          快捷键
+          {t.builder_shortcuts}
         </button>
       </div>
 
@@ -323,10 +325,10 @@ export default function DeckBuilderPage() {
       {showShortcuts && (
         <div className="mb-4 rounded-lg border border-slate-700 bg-slate-800 p-3 text-xs text-slate-400">
           <p className="mb-1">
-            <span className="font-medium text-slate-300">1-9</span> — 快速添加左侧卡牌池对应位置的卡牌
+            <span className="font-medium text-slate-300">1-9</span> — {t.builder_shortcuts_hint}
           </p>
           <p>
-            <span className="font-medium text-slate-300">点击右侧卡组</span> — 移除一张卡牌
+            <span className="font-medium text-slate-300">{t.builder_click_remove}</span>
           </p>
         </div>
       )}
@@ -337,23 +339,23 @@ export default function DeckBuilderPage() {
           <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
             <div className="mb-4 flex items-center gap-2 text-amber-400">
               <AlertTriangle className="h-5 w-5" />
-              <h3 className="font-bold">切换角色</h3>
+              <h3 className="font-bold">{t.builder_switch_char}</h3>
             </div>
             <p className="mb-6 text-sm text-slate-300">
-              切换角色将清空当前卡组。是否继续？
+              {t.builder_switch_confirm}
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowSwitchWarning(null)}
                 className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
               >
-                取消
+                {t.builder_cancel}
               </button>
               <button
                 onClick={confirmSwitch}
                 className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
               >
-                确认切换
+                {t.builder_confirm}
               </button>
             </div>
           </div>
@@ -365,14 +367,14 @@ export default function DeckBuilderPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
             <h3 className="mb-4 text-lg font-bold text-slate-100">
-              {cloudDeckId ? "更新云端卡组" : "保存到云端"}
+              {cloudDeckId ? t.save_cloud_title_update : t.save_cloud_title_new}
             </h3>
             <div className="mb-4 rounded-lg border border-slate-800 bg-slate-950/50 p-3 text-sm text-slate-400">
               <p className="mb-1">
-                <span className="text-slate-200">{deckName || "未命名卡组"}</span>
+                <span className="text-slate-200">{deckName || t.builder_unnamed}</span>
               </p>
               <p>
-                {deck.length} 张卡牌 · {characters.find((c) => c.id === selectedCharacter)?.name}
+                {deck.length}{t.unit_cards} · {characters.find((c) => c.id === selectedCharacter)?.name}
               </p>
             </div>
             <div className="mb-6 flex items-center gap-2">
@@ -384,7 +386,7 @@ export default function DeckBuilderPage() {
                 className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-amber-500"
               />
               <label htmlFor="public" className="text-sm text-slate-300">
-                公开到卡组广场
+                {t.save_public_label}
               </label>
             </div>
             <div className="flex gap-2">
@@ -392,14 +394,14 @@ export default function DeckBuilderPage() {
                 onClick={() => setShowCloudSave(false)}
                 className="flex-1 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
               >
-                取消
+                {t.save_cancel}
               </button>
               <button
                 onClick={handleSaveCloud}
                 disabled={loadingCloud}
                 className="flex-1 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-50"
               >
-                {loadingCloud ? "保存中..." : cloudDeckId ? "更新" : "保存"}
+                {loadingCloud ? t.builder_generating : cloudDeckId ? t.save_update_btn : t.save_cloud_btn}
               </button>
             </div>
             <div className="mt-3 text-center">
@@ -410,7 +412,7 @@ export default function DeckBuilderPage() {
                 }}
                 className="text-xs text-slate-500 hover:text-slate-300"
               >
-                仅保存到本地
+                {t.save_local_only}
               </button>
             </div>
           </div>
@@ -441,8 +443,8 @@ export default function DeckBuilderPage() {
         {/* Left: Card Pool */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold text-slate-200">{characterInfo?.name} 卡牌池</h2>
-            <span className="text-xs text-slate-500">点击卡牌加入卡组</span>
+            <h2 className="font-bold text-slate-200">{characterInfo?.name} {t.builder_card_pool}</h2>
+            <span className="text-xs text-slate-500">{t.builder_click_add}</span>
           </div>
           <div className="max-h-[600px] space-y-2 overflow-y-auto rounded-lg border border-slate-800 bg-slate-900/30 p-3">
             {availableCards.slice(0, 9).map((card, i) => (
@@ -469,22 +471,22 @@ export default function DeckBuilderPage() {
           <div className="mb-3">
             <input
               type="text"
-              placeholder="输入卡组名称..."
+              placeholder={t.builder_deck_name_placeholder}
               value={deckName}
               onChange={(e) => setDeckName(e.target.value)}
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
             />
           </div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-bold text-slate-200">当前卡组</h2>
+            <h2 className="font-bold text-slate-200">{t.builder_current_deck}</h2>
             <div className="flex gap-1">
               <button
                 onClick={() => setShowSaved(!showSaved)}
                 className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-sky-400 transition hover:bg-sky-500/10"
-                title="加载卡组"
+                title={t.builder_load}
               >
                 <FolderOpen className="h-3 w-3" />
-                加载
+                {t.builder_load}
               </button>
               <button
                 onClick={() => {
@@ -496,10 +498,10 @@ export default function DeckBuilderPage() {
                 }}
                 disabled={deck.length === 0}
                 className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-emerald-400 transition hover:bg-emerald-500/10 disabled:opacity-50"
-                title="保存卡组"
+                title={t.builder_save}
               >
                 <Save className="h-3 w-3" />
-                {cloudDeckId ? "更新" : "保存"}
+                {cloudDeckId ? t.builder_update : t.builder_save}
               </button>
               <button
                 onClick={clearDeck}
@@ -507,7 +509,7 @@ export default function DeckBuilderPage() {
                 disabled={deck.length === 0}
               >
                 <Trash2 className="h-3 w-3" />
-                清空
+                {t.builder_clear}
               </button>
             </div>
           </div>
@@ -516,16 +518,16 @@ export default function DeckBuilderPage() {
           {showSaved && (
             <div className="mb-3 rounded-lg border border-slate-700 bg-slate-800 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">已保存的卡组</span>
+                <span className="text-xs font-medium text-slate-400">{t.builder_saved_decks}</span>
                 <Link
                   href="/decks"
                   className="text-xs text-amber-400 hover:text-amber-300"
                 >
-                  查看全部
+                  {t.builder_view_all}
                 </Link>
               </div>
               {savedDecks.length === 0 ? (
-                <p className="py-2 text-center text-xs text-slate-600">暂无保存的卡组</p>
+                <p className="py-2 text-center text-xs text-slate-600">{t.builder_no_saved}</p>
               ) : (
                 <div className="space-y-1 max-h-[200px] overflow-y-auto">
                   {savedDecks.map((saved) => {
@@ -545,7 +547,7 @@ export default function DeckBuilderPage() {
                           />
                           <span className="truncate text-slate-200">{saved.name}</span>
                           <span className="shrink-0 text-xs text-slate-500">
-                            {charInfo?.name} · {saved.cardIds.length}张
+                            {charInfo?.name} · {saved.cardIds.length}{t.unit_card}
                           </span>
                         </div>
                         <button
@@ -564,11 +566,11 @@ export default function DeckBuilderPage() {
 
           {/* Stats */}
           <div className="mb-4 grid grid-cols-5 gap-2 rounded-lg border border-slate-800 bg-slate-900/30 p-3 text-center">
-            <StatBox label="总计" value={stats.total} />
-            <StatBox label="攻击" value={stats.attack} color="text-rose-400" />
-            <StatBox label="技能" value={stats.skill} color="text-sky-400" />
-            <StatBox label="能力" value={stats.power} color="text-emerald-400" />
-            <StatBox label="均费" value={stats.avgCost} />
+            <StatBox label={t.builder_stat_total} value={stats.total} />
+            <StatBox label={t.builder_stat_attack} value={stats.attack} color="text-rose-400" />
+            <StatBox label={t.builder_stat_skill} value={stats.skill} color="text-sky-400" />
+            <StatBox label={t.builder_stat_power} value={stats.power} color="text-emerald-400" />
+            <StatBox label={t.builder_stat_avg_cost} value={stats.avgCost} />
           </div>
 
           {/* Cost Curve */}
@@ -593,7 +595,7 @@ export default function DeckBuilderPage() {
           <div className="mb-4 max-h-[400px] space-y-1 overflow-y-auto rounded-lg border border-slate-800 bg-slate-900/30 p-3">
             {deck.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-600">
-                点击左侧卡牌开始构建卡组
+                {t.builder_click_build}
               </div>
             ) : (
               deckGrouped.map(({ card, count, lastIndex }) => (
@@ -610,14 +612,14 @@ export default function DeckBuilderPage() {
                     <button
                       onClick={() => addCard(card)}
                       className="rounded p-1 text-slate-600 transition hover:bg-emerald-500/10 hover:text-emerald-400"
-                      title="添加"
+                      title={t.builder_add}
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => removeCard(lastIndex)}
                       className="rounded p-1 text-slate-600 transition hover:bg-red-500/10 hover:text-red-400"
-                      title="移除"
+                      title={t.builder_remove}
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
@@ -637,12 +639,12 @@ export default function DeckBuilderPage() {
               {generating ? (
                 <>
                   <Sparkles className="h-4 w-4 animate-spin" />
-                  生成中...
+                  {t.builder_generating}
                 </>
               ) : (
                 <>
                   <Download className="h-4 w-4" />
-                  生成分享图
+                  {t.builder_generate_image}
                 </>
               )}
             </button>
@@ -650,19 +652,19 @@ export default function DeckBuilderPage() {
               onClick={handleCopyLink}
               disabled={deck.length === 0}
               className="flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700 disabled:opacity-50"
-              title="复制分享链接"
+              title={t.builder_copy_link}
             >
               {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4" />}
-              {copied ? "已复制" : "链接"}
+              {copied ? t.builder_copied : t.builder_copy_link}
             </button>
             <button
               onClick={() => setShowExport(!showExport)}
               disabled={deck.length === 0}
               className="flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-700 disabled:opacity-50"
-              title="导出文本"
+              title={t.builder_export_text}
             >
               <FileText className="h-4 w-4" />
-              文本
+              {t.builder_export_text}
             </button>
           </div>
 
@@ -670,7 +672,7 @@ export default function DeckBuilderPage() {
           {showExport && (
             <div className="mt-3 rounded-lg border border-slate-700 bg-slate-800 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-400">卡组文本</span>
+                <span className="text-xs font-medium text-slate-400">{t.builder_export_title}</span>
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(exportText());
@@ -680,7 +682,7 @@ export default function DeckBuilderPage() {
                   className="flex items-center gap-1 text-xs text-sky-400 transition hover:text-sky-300"
                 >
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  复制
+                  {t.builder_copy}
                 </button>
               </div>
               <pre className="max-h-[200px] overflow-auto rounded bg-slate-900 p-3 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap">
@@ -700,18 +702,18 @@ export default function DeckBuilderPage() {
           <div className="mb-6 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg" style={{ backgroundColor: characterInfo?.color }} />
             <div>
-              <h2 className="text-xl font-bold text-slate-100">{deckName || "未命名卡组"}</h2>
+              <h2 className="text-xl font-bold text-slate-100">{deckName || t.builder_unnamed}</h2>
               <p className="text-sm text-slate-400">
-                {characterInfo?.name} · {deck.length} 张卡牌
+                {characterInfo?.name} · {deck.length} {t.unit_cards}
               </p>
             </div>
           </div>
 
           <div className="mb-4 flex gap-4 text-sm">
-            <span className="text-rose-400">攻击 {stats.attack}</span>
-            <span className="text-sky-400">技能 {stats.skill}</span>
-            <span className="text-emerald-400">能力 {stats.power}</span>
-            <span className="text-slate-400">均费 {stats.avgCost}</span>
+            <span className="text-rose-400">{t.builder_stat_attack} {stats.attack}</span>
+            <span className="text-sky-400">{t.builder_stat_skill} {stats.skill}</span>
+            <span className="text-emerald-400">{t.builder_stat_power} {stats.power}</span>
+            <span className="text-slate-400">{t.builder_stat_avg_cost} {stats.avgCost}</span>
           </div>
 
           <div className="space-y-2">
@@ -739,7 +741,7 @@ export default function DeckBuilderPage() {
           </div>
 
           <div className="mt-6 text-center text-xs text-slate-600">
-            sts2-deckbuilder.vercel.app · 杀戮尖塔2 卡组构建器
+            {t.builder_share_site}
           </div>
         </div>
       </div>
@@ -751,7 +753,7 @@ export default function DeckBuilderPage() {
         </div>
       ) : (
         <div className="mt-12 rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-center text-sm text-slate-500">
-          将卡组保存到云端后即可查看和发表评论
+          {t.builder_comments_hint}
         </div>
       )}
 

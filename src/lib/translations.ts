@@ -67,7 +67,28 @@ export const translations = {
     builder_export_text: "文本",
     builder_export_title: "卡组文本",
     builder_copy: "复制",
+    builder_add: "添加",
+    builder_remove: "移除",
     builder_comments_hint: "将卡组保存到云端后即可查看和发表评论",
+    builder_share_site: "sts2-deckbuilder.vercel.app · 杀戮尖塔2 卡组构建器",
+
+    // Card types
+    type_attack: "攻击",
+    type_skill: "技能",
+    type_power: "能力",
+    type_curse: "诅咒",
+
+    // Units
+    unit_card: "张",
+    unit_cards: "张卡牌",
+    unit_more: "还有 {count} 张...",
+
+    // Export
+    builder_unnamed: "未命名卡组",
+    export_character: "角色",
+    export_card_count: "卡牌数",
+    export_header: "【{name}】",
+    save_toast_error: "保存失败",
 
     // Save modal
     save_cloud_title_new: "保存到云端",
@@ -95,6 +116,13 @@ export const translations = {
     plaza_local_tag: "本地",
     plaza_retry: "重试",
     plaza_error: "加载失败",
+    plaza_search_placeholder: "搜索卡组...",
+    plaza_sort_newest: "最新",
+    plaza_sort_likes: "最多赞",
+    plaza_sort_oldest: "最早",
+    plaza_like_login: "请先登录后再点赞",
+    plaza_count_suffix: "套",
+    plaza_anonymous: "匿名用户",
 
     // Profile
     profile_title: "我的卡组",
@@ -106,6 +134,7 @@ export const translations = {
     profile_private: "私有",
     profile_delete: "删除",
     profile_delete_confirm: "确定删除这套卡组吗？",
+    profile_load_deck: "加载卡组",
 
     // Auth
     auth_login: "登录",
@@ -130,6 +159,7 @@ export const translations = {
     comments_empty: "暂无评论，来发表第一条吧",
     comments_send: "发送",
     comments_placeholder: "写下你对这个卡组的评价或建议...",
+    comments_error: "评论失败，请重试",
 
     // Footer
     footer_name: "STS2 Deck Builder · 杀戮尖塔2 卡组构建器",
@@ -200,10 +230,31 @@ export const translations = {
     builder_generating: "Generating...",
     builder_copy_link: "Link",
     builder_copied: "Copied",
+    builder_copy: "Copy",
     builder_export_text: "Text",
     builder_export_title: "Deck Text",
-    builder_copy: "Copy",
+    builder_add: "Add",
+    builder_remove: "Remove",
     builder_comments_hint: "Save deck to cloud to view and post comments",
+    builder_share_site: "sts2-deckbuilder.vercel.app · Slay the Spire 2 Deck Builder",
+
+    // Card types
+    type_attack: "Attack",
+    type_skill: "Skill",
+    type_power: "Power",
+    type_curse: "Curse",
+
+    // Units
+    unit_card: " cards",
+    unit_cards: " cards",
+    unit_more: "and {count} more...",
+
+    // Export
+    builder_unnamed: "Unnamed Deck",
+    export_character: "Character",
+    export_card_count: "Card Count",
+    export_header: "[{name}]",
+    save_toast_error: "Save failed",
 
     // Save modal
     save_cloud_title_new: "Save to Cloud",
@@ -231,6 +282,13 @@ export const translations = {
     plaza_local_tag: "Local",
     plaza_retry: "Retry",
     plaza_error: "Failed to load",
+    plaza_search_placeholder: "Search decks...",
+    plaza_sort_newest: "Newest",
+    plaza_sort_likes: "Most Liked",
+    plaza_sort_oldest: "Oldest",
+    plaza_like_login: "Please login to like",
+    plaza_count_suffix: " decks",
+    plaza_anonymous: "Anonymous",
 
     // Profile
     profile_title: "My Decks",
@@ -242,6 +300,7 @@ export const translations = {
     profile_private: "Private",
     profile_delete: "Delete",
     profile_delete_confirm: "Are you sure you want to delete this deck?",
+    profile_load_deck: "Load Deck",
 
     // Auth
     auth_login: "Login",
@@ -266,6 +325,7 @@ export const translations = {
     comments_empty: "No comments yet, be the first",
     comments_send: "Send",
     comments_placeholder: "Write your review or suggestion...",
+    comments_error: "Failed to post comment, please retry",
 
     // Footer
     footer_name: "STS2 Deck Builder · Slay the Spire 2 Deck Builder",

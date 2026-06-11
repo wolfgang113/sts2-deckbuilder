@@ -8,6 +8,7 @@ import {
   type CloudComment,
 } from "@/lib/supabaseComments";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import { MessageSquare, Send, Trash2, User } from "lucide-react";
 
 interface CommentSectionProps {
@@ -15,6 +16,7 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ deckId }: CommentSectionProps) {
+  const { t } = useTranslation();
   const [comments, setComments] = useState<CloudComment[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,7 +46,7 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
       await loadComments();
       setContent("");
     } catch {
-      alert("评论失败，请重试");
+      alert(t.comments_error);
     } finally {
       setLoading(false);
     }
@@ -67,7 +69,7 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
     <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
       <div className="mb-4 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-amber-400" />
-        <h2 className="text-lg font-bold text-slate-100">卡组评论</h2>
+        <h2 className="text-lg font-bold text-slate-100">{t.comments_title}</h2>
         <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
           {comments.length}
         </span>
@@ -84,7 +86,7 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
           </div>
           <div className="flex gap-2">
             <textarea
-              placeholder="写下你对这个卡组的评价或建议..."
+              placeholder={t.comments_placeholder}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={(e) => {
@@ -101,20 +103,20 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
               className="flex shrink-0 items-center gap-1 self-end rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="h-4 w-4" />
-              发送
+              {t.comments_send}
             </button>
           </div>
         </div>
       ) : (
         <div className="mb-6 rounded-lg border border-slate-800 bg-slate-900/80 px-4 py-3 text-sm text-slate-500">
-          登录后可发表评论
+          {t.comments_login_hint}
         </div>
       )}
 
       {/* List */}
       {comments.length === 0 ? (
         <div className="py-8 text-center text-sm text-slate-600">
-          暂无评论，来发表第一条吧
+          {t.comments_empty}
         </div>
       ) : (
         <div className="space-y-3">

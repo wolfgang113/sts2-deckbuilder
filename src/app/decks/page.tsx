@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { characters } from "@/data/cards";
 import { getDeckCards, loadSavedDecks, type SavedDeck } from "@/lib/deckStorage";
@@ -11,14 +11,18 @@ import {
   type CloudDeck,
 } from "@/lib/supabaseDecks";
 import { getCurrentUser } from "@/lib/auth";
-import { Layers, Heart, Swords, User, Monitor, Cloud } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { Layers, Heart, Swords, User, Monitor, Cloud, Search, ArrowUpDown } from "lucide-react";
 
 export default function DecksPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"cloud" | "local">("cloud");
   const [cloudDecks, setCloudDecks] = useState<CloudDeck[]>([]);
   const [localDecks, setLocalDecks] = useState<SavedDeck[]>([]);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [filterChar, setFilterChar] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "likes" | "oldest">("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +47,7 @@ export default function DecksPage() {
       setCloudDecks(publicDecks);
       setLikedIds(new Set(liked));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "加载失败";
+      const msg = err instanceof Error ? err.message : t.plaza_error;
       setError(msg);
       console.error("加载云端卡组失败:", err);
     } finally {
@@ -68,18 +72,51 @@ export default function DecksPage() {
         )
       );
     } catch {
-      alert("请先登录后再点赞");
+      alert(t.plaza_like_login);
     }
   };
 
-  const displayedDecks = tab === "cloud" ? cloudDecks : localDecks;
+  const filteredAndSortedDecks = useMemo(() => {
+    const source = tab === "cloud" ? cloudDecks : localDecks;
+
+    let result = [...source] as (CloudDeck | SavedDeck)[];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter((deck) => {
+        const name = ("name" in deck ? deck.name : "").toLowerCase();
+        return name.includes(q);
+      });
+    }
+
+    result = [...result].sort((a, b) => {
+      if (sortBy === "newest") {
+        const aTime = new Date(("created_at" in a ? a.created_at : a.createdAt) || 0).getTime();
+        const bTime = new Date(("created_at" in b ? b.created_at : b.createdAt) || 0).getTime();
+        return bTime - aTime;
+      }
+      if (sortBy === "oldest") {
+        const aTime = new Date(("created_at" in a ? a.created_at : a.createdAt) || 0).getTime();
+        const bTime = new Date(("created_at" in b ? b.created_at : b.createdAt) || 0).getTime();
+        return aTime - bTime;
+      }
+      if (sortBy === "likes") {
+        const aLikes = "likes_count" in a ? (a.likes_count || 0) : 0;
+        const bLikes = "likes_count" in b ? (b.likes_count || 0) : 0;
+        return bLikes - aLikes;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [tab, cloudDecks, localDecks, searchQuery, sortBy]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-slate-100">卡组广场</h1>
+        <h1 className="text-2xl font-bold text-slate-100">{t.plaza_title}</h1>
         <span className="rounded-full bg-slate-800 px-3 py-0.5 text-xs text-slate-400">
-          {displayedDecks.length} 套
+          {filteredAndSortedDecks.length}{t.plaza_count_suffix}
         </span>
       </div>
 
@@ -94,7 +131,7 @@ export default function DecksPage() {
           }`}
         >
           <Cloud className="h-4 w-4" />
-          云端广场
+          {t.plaza_cloud}
         </button>
         <button
           onClick={() => setTab("local")}
@@ -105,8 +142,34 @@ export default function DecksPage() {
           }`}
         >
           <Monitor className="h-4 w-4" />
-          本地卡组
+          {t.plaza_local}
         </button>
+      </div>
+
+      {/* Search & Sort */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t.plaza_search_placeholder}
+            className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-9 pr-3 text-sm text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
+          />
+        </div>
+        <div className="relative">
+          <ArrowUpDown className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "newest" | "likes" | "oldest")}
+            className="appearance-none rounded-lg border border-slate-700 bg-slate-800 py-2 pl-9 pr-8 text-sm text-slate-200 focus:border-amber-500 focus:outline-none"
+          >
+            <option value="newest">{t.plaza_sort_newest}</option>
+            <option value="likes">{t.plaza_sort_likes}</option>
+            <option value="oldest">{t.plaza_sort_oldest}</option>
+          </select>
+        </div>
       </div>
 
       {/* Character Filter */}
@@ -119,7 +182,7 @@ export default function DecksPage() {
               : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
           }`}
         >
-          全部
+          {t.plaza_all}
         </button>
         {characters
           .filter((c) => c.id !== "Colorless" && c.id !== "Curse")
@@ -140,42 +203,42 @@ export default function DecksPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-slate-500">加载中...</div>
+        <div className="py-20 text-center text-slate-500">{t.plaza_loading}</div>
       ) : error ? (
         <div className="py-20 text-center">
           <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
-          <p className="mb-2 text-red-400">加载失败</p>
+          <p className="mb-2 text-red-400">{t.plaza_error}</p>
           <p className="text-xs text-slate-600">{error}</p>
           <button
             onClick={loadCloudDecks}
             className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
           >
-            重试
+            {t.plaza_retry}
           </button>
         </div>
-      ) : displayedDecks.length === 0 ? (
+      ) : filteredAndSortedDecks.length === 0 ? (
         <div className="py-20 text-center">
           <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
           <p className="text-slate-500">
-            {tab === "cloud" ? "暂无公开卡组" : "暂无本地卡组"}
+            {tab === "cloud" ? t.plaza_empty_cloud : t.plaza_empty_local}
           </p>
           {tab === "local" && (
             <Link
               href="/deckbuilder"
               className="mt-2 inline-block text-sm text-amber-400 hover:text-amber-300"
             >
-              去组卡器创建
+              {t.plaza_go_build}
             </Link>
           )}
         </div>
       ) : tab === "cloud" ? (
         <CloudDeckList
-          decks={cloudDecks}
+          decks={filteredAndSortedDecks as CloudDeck[]}
           likedIds={likedIds}
           onLike={handleLike}
         />
       ) : (
-        <LocalDeckList decks={localDecks} />
+        <LocalDeckList decks={filteredAndSortedDecks as SavedDeck[]} />
       )}
     </div>
   );
@@ -190,6 +253,7 @@ function CloudDeckList({
   likedIds: Set<string>;
   onLike: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {decks.map((deck) => {
@@ -209,7 +273,7 @@ function CloudDeckList({
             : "0";
 
         const isLiked = likedIds.has(deck.id);
-        const authorName = deck.display_name ?? "匿名用户";
+        const authorName = deck.display_name ?? t.plaza_anonymous;
 
         return (
           <div
@@ -250,13 +314,13 @@ function CloudDeckList({
             <div className="mb-3 flex flex-wrap gap-2 text-xs text-slate-400">
               <span style={{ color: charInfo?.color }}>{charInfo?.name}</span>
               <span>·</span>
-              <span>{deckCards.length} 张</span>
+              <span>{deckCards.length}{t.unit_card}</span>
               <span>·</span>
-              <span className="text-rose-400">攻击 {attack}</span>
-              <span className="text-sky-400">技能 {skill}</span>
-              <span className="text-emerald-400">能力 {power}</span>
+              <span className="text-rose-400">{t.builder_stat_attack} {attack}</span>
+              <span className="text-sky-400">{t.builder_stat_skill} {skill}</span>
+              <span className="text-emerald-400">{t.builder_stat_power} {power}</span>
               <span>·</span>
-              <span>均费 {avgCost}</span>
+              <span>{t.builder_stat_avg_cost} {avgCost}</span>
             </div>
 
             <div className="mb-4 space-y-1">
@@ -273,7 +337,7 @@ function CloudDeckList({
               ))}
               {deckCards.length > 5 && (
                 <p className="text-xs text-slate-600">
-                  还有 {deckCards.length - 5} 张...
+                  {t.unit_more.replace("{count}", String(deckCards.length - 5))}
                 </p>
               )}
             </div>
@@ -283,7 +347,7 @@ function CloudDeckList({
               className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700"
             >
               <Swords className="h-4 w-4" />
-              加载卡组
+              {t.plaza_load_deck}
             </Link>
           </div>
         );
@@ -293,6 +357,7 @@ function CloudDeckList({
 }
 
 function LocalDeckList({ decks }: { decks: SavedDeck[] }) {
+  const { t } = useTranslation();
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {decks.map((deck) => {
@@ -325,20 +390,20 @@ function LocalDeckList({ decks }: { decks: SavedDeck[] }) {
                 <h3 className="truncate font-bold text-slate-100">{deck.name}</h3>
               </div>
               <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-500">
-                本地
+                {t.plaza_local_tag}
               </span>
             </div>
 
             <div className="mb-3 flex flex-wrap gap-2 text-xs text-slate-400">
               <span style={{ color: charInfo?.color }}>{charInfo?.name}</span>
               <span>·</span>
-              <span>{deckCards.length} 张</span>
+              <span>{deckCards.length}{t.unit_card}</span>
               <span>·</span>
-              <span className="text-rose-400">攻击 {attack}</span>
-              <span className="text-sky-400">技能 {skill}</span>
-              <span className="text-emerald-400">能力 {power}</span>
+              <span className="text-rose-400">{t.builder_stat_attack} {attack}</span>
+              <span className="text-sky-400">{t.builder_stat_skill} {skill}</span>
+              <span className="text-emerald-400">{t.builder_stat_power} {power}</span>
               <span>·</span>
-              <span>均费 {avgCost}</span>
+              <span>{t.builder_stat_avg_cost} {avgCost}</span>
             </div>
 
             <div className="mb-4 space-y-1">
@@ -355,7 +420,7 @@ function LocalDeckList({ decks }: { decks: SavedDeck[] }) {
               ))}
               {deckCards.length > 5 && (
                 <p className="text-xs text-slate-600">
-                  还有 {deckCards.length - 5} 张...
+                  {t.unit_more.replace("{count}", String(deckCards.length - 5))}
                 </p>
               )}
             </div>
@@ -375,7 +440,7 @@ function LocalDeckList({ decks }: { decks: SavedDeck[] }) {
               className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700"
             >
               <Swords className="h-4 w-4" />
-              加载卡组
+              {t.plaza_load_deck}
             </Link>
           </div>
         );

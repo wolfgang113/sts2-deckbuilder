@@ -7,9 +7,11 @@ import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { getMyDecks, deleteCloudDeck, updateDeck, type CloudDeck } from "@/lib/supabaseDecks";
 import { characters } from "@/data/cards";
 import { getDeckCards } from "@/lib/deckStorage";
+import { useTranslation } from "@/lib/i18n";
 import { FolderHeart, Trash2, Globe, Lock, Edit2, Check, X, Swords } from "lucide-react";
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [decks, setDecks] = useState<CloudDeck[]>([]);
@@ -39,7 +41,7 @@ export default function ProfilePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("确定删除这套卡组吗？")) return;
+    if (!confirm(t.profile_delete_confirm)) return;
     await deleteCloudDeck(id);
     setDecks((prev) => prev.filter((d) => d.id !== id));
   };
@@ -68,7 +70,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-20 text-center text-slate-500">
-        请先登录
+        {t.nav_login}
       </div>
     );
   }
@@ -77,23 +79,23 @@ export default function ProfilePage() {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center gap-3">
         <FolderHeart className="h-6 w-6 text-amber-400" />
-        <h1 className="text-2xl font-bold text-slate-100">我的卡组</h1>
+        <h1 className="text-2xl font-bold text-slate-100">{t.profile_title}</h1>
         <span className="rounded-full bg-slate-800 px-3 py-0.5 text-xs text-slate-400">
-          {decks.length} 套
+          {decks.length}{t.plaza_count_suffix}
         </span>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-slate-500">加载中...</div>
+        <div className="py-20 text-center text-slate-500">{t.profile_loading}</div>
       ) : decks.length === 0 ? (
         <div className="py-20 text-center">
           <FolderHeart className="mx-auto mb-4 h-12 w-12 text-slate-700" />
-          <p className="mb-2 text-slate-500">还没有云端卡组</p>
+          <p className="mb-2 text-slate-500">{t.profile_empty}</p>
           <Link
             href="/deckbuilder"
             className="text-sm text-amber-400 hover:text-amber-300"
           >
-            去组卡器创建
+            {t.profile_go_build}
           </Link>
         </div>
       ) : (
@@ -158,7 +160,7 @@ export default function ProfilePage() {
                     <button
                       onClick={() => startEdit(deck)}
                       className="rounded p-1 text-slate-600 opacity-0 transition hover:text-amber-400 group-hover:opacity-100"
-                      title="重命名"
+                      title={t.profile_rename}
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                     </button>
@@ -167,7 +169,7 @@ export default function ProfilePage() {
                       className={`rounded p-1 transition ${
                         deck.is_public ? "text-emerald-400" : "text-slate-600"
                       }`}
-                      title={deck.is_public ? "公开" : "私有"}
+                      title={deck.is_public ? t.profile_public : t.profile_private}
                     >
                       {deck.is_public ? (
                         <Globe className="h-3.5 w-3.5" />
@@ -178,7 +180,7 @@ export default function ProfilePage() {
                     <button
                       onClick={() => handleDelete(deck.id)}
                       className="rounded p-1 text-slate-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
-                      title="删除"
+                      title={t.profile_delete}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -188,13 +190,13 @@ export default function ProfilePage() {
                 <div className="mb-3 flex flex-wrap gap-2 text-xs text-slate-400">
                   <span style={{ color: charInfo?.color }}>{charInfo?.name}</span>
                   <span>·</span>
-                  <span>{deckCards.length} 张</span>
+                  <span>{deckCards.length}{t.unit_card}</span>
                   <span>·</span>
-                  <span className="text-rose-400">攻击 {attack}</span>
-                  <span className="text-sky-400">技能 {skill}</span>
-                  <span className="text-emerald-400">能力 {power}</span>
+                  <span className="text-rose-400">{t.builder_stat_attack} {attack}</span>
+                  <span className="text-sky-400">{t.builder_stat_skill} {skill}</span>
+                  <span className="text-emerald-400">{t.builder_stat_power} {power}</span>
                   <span>·</span>
-                  <span>均费 {avgCost}</span>
+                  <span>{t.builder_stat_avg_cost} {avgCost}</span>
                 </div>
 
                 <div className="mb-4 space-y-1">
@@ -211,7 +213,7 @@ export default function ProfilePage() {
                   ))}
                   {deckCards.length > 5 && (
                     <p className="text-xs text-slate-600">
-                      还有 {deckCards.length - 5} 张...
+                      {t.unit_more.replace("{count}", String(deckCards.length - 5))}
                     </p>
                   )}
                 </div>
@@ -221,7 +223,7 @@ export default function ProfilePage() {
                   className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700"
                 >
                   <Swords className="h-4 w-4" />
-                  加载卡组
+                  {t.profile_load_deck}
                 </Link>
               </div>
             );
