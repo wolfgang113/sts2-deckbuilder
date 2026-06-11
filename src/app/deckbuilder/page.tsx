@@ -527,7 +527,12 @@ export default function DeckBuilderPage() {
                 </Link>
               </div>
               {savedDecks.length === 0 ? (
-                <p className="py-2 text-center text-xs text-slate-600">{t.builder_no_saved}</p>
+                <div className="py-4 text-center">
+                  <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50">
+                    <FolderOpen className="h-4 w-4 text-slate-600" />
+                  </div>
+                  <p className="text-xs text-slate-600">{t.builder_no_saved}</p>
+                </div>
               ) : (
                 <div className="space-y-1 max-h-[200px] overflow-y-auto">
                   {savedDecks.map((saved) => {

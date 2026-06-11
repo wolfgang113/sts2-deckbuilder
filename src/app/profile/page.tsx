@@ -86,15 +86,26 @@ export default function ProfilePage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-slate-500">{t.profile_loading}</div>
+        <div className="py-20 text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-slate-700 border-t-amber-500" />
+          <p className="text-slate-500">{t.profile_loading}</p>
+        </div>
       ) : decks.length === 0 ? (
         <div className="py-20 text-center">
-          <FolderHeart className="mx-auto mb-4 h-12 w-12 text-slate-700" />
-          <p className="mb-2 text-slate-500">{t.profile_empty}</p>
+          <div className="relative mx-auto mb-6 flex h-28 w-28 items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-amber-500/5" />
+            <div className="absolute inset-3 rounded-full bg-amber-500/5" />
+            <div className="relative flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/80">
+              <FolderHeart className="h-7 w-7 text-amber-400" />
+            </div>
+          </div>
+          <p className="mb-1 text-sm font-medium text-slate-300">{t.profile_empty}</p>
+          <p className="mb-4 text-xs text-slate-600">Save a deck to the cloud to manage it here</p>
           <Link
             href="/deckbuilder"
-            className="text-sm text-amber-400 hover:text-amber-300"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
           >
+            <Swords className="h-4 w-4" />
             {t.profile_go_build}
           </Link>
         </div>

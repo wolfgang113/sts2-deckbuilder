@@ -203,30 +203,53 @@ export default function DecksPage() {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-slate-500">{t.plaza_loading}</div>
+        <div className="py-20 text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-slate-700 border-t-amber-500" />
+          <p className="text-slate-500">{t.plaza_loading}</p>
+        </div>
       ) : error ? (
         <div className="py-20 text-center">
-          <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
+          <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-red-500/10" />
+            <div className="absolute inset-2 rounded-full bg-red-500/5" />
+            <Layers className="relative h-10 w-10 text-red-400" />
+          </div>
           <p className="mb-2 text-red-400">{t.plaza_error}</p>
           <p className="text-xs text-slate-600">{error}</p>
           <button
             onClick={loadCloudDecks}
-            className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+            className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-700"
           >
             {t.plaza_retry}
           </button>
         </div>
       ) : filteredAndSortedDecks.length === 0 ? (
         <div className="py-20 text-center">
-          <Layers className="mx-auto mb-4 h-12 w-12 text-slate-700" />
-          <p className="text-slate-500">
+          <div className="relative mx-auto mb-6 flex h-28 w-28 items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-amber-500/5" />
+            <div className="absolute inset-3 rounded-full bg-amber-500/5" />
+            <div className="relative flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/80">
+              {tab === "cloud" ? (
+                <Cloud className="h-7 w-7 text-amber-400" />
+              ) : (
+                <Monitor className="h-7 w-7 text-sky-400" />
+              )}
+            </div>
+          </div>
+          <p className="mb-1 text-sm font-medium text-slate-300">
             {tab === "cloud" ? t.plaza_empty_cloud : t.plaza_empty_local}
+          </p>
+          <p className="mb-4 text-xs text-slate-600">
+            {tab === "cloud"
+              ? "Be the first to share your deck"
+              : "Create your first deck to see it here"}
           </p>
           {tab === "local" && (
             <Link
               href="/deckbuilder"
-              className="mt-2 inline-block text-sm text-amber-400 hover:text-amber-300"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
             >
+              <Swords className="h-4 w-4" />
               {t.plaza_go_build}
             </Link>
           )}

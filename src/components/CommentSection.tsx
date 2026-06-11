@@ -115,8 +115,12 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
 
       {/* List */}
       {comments.length === 0 ? (
-        <div className="py-8 text-center text-sm text-slate-600">
-          {t.comments_empty}
+        <div className="py-10 text-center">
+          <div className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-slate-800/50" />
+            <MessageSquare className="relative h-6 w-6 text-slate-600" />
+          </div>
+          <p className="text-sm text-slate-500">{t.comments_empty}</p>
         </div>
       ) : (
         <div className="space-y-3">
