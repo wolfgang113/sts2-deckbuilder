@@ -70,31 +70,41 @@ export default function Header() {
             <Swords className="h-5 w-5" />
             <span>STS2 Deck</span>
           </Link>
-          <nav className="flex flex-1 items-center gap-0.5 overflow-x-auto scrollbar-hide md:gap-1">
-            {navItems.map((item) => {
-              const active = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors md:px-3 md:text-sm ${
-                    active
-                      ? "bg-slate-800 text-amber-400"
-                      : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
-                  }`}
-                >
-                  <item.icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  <span className="whitespace-nowrap">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="relative flex flex-1 min-w-0 items-center">
+            <nav
+              className="flex flex-1 items-center gap-0.5 overflow-x-auto scroll-smooth whitespace-nowrap pb-1 pt-1 scrollbar-hide md:gap-1"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {navItems.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors md:px-3 md:text-sm ${
+                      active
+                        ? "bg-slate-800 text-amber-400"
+                        : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+                    }`}
+                  >
+                    <item.icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-slate-950/80 to-transparent md:hidden" />
+          </div>
 
           {/* Language + Sponsor + Auth */}
           {authReady && (
-            <div className="ml-2 flex shrink-0 items-center gap-2">
-              <LanguageSwitch />
-              <SponsorButton />
+            <div className="ml-2 flex shrink-0 items-center gap-1 md:gap-2">
+              <div className="hidden sm:block">
+                <LanguageSwitch />
+              </div>
+              <div className="hidden md:block">
+                <SponsorButton />
+              </div>
               {user ? (
                 <UserMenu
                   user={user}
@@ -103,7 +113,7 @@ export default function Header() {
               ) : (
                 <button
                   onClick={() => setShowAuth(true)}
-                  className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-800 md:text-sm"
+                  className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-800 md:px-3 md:text-sm"
                 >
                   <LogIn className="h-4 w-4" />
                   <span className="hidden sm:inline">{t.nav_login}</span>
