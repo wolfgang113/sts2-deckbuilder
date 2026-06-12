@@ -14,7 +14,7 @@ import {
 import { getCommentCounts } from "@/lib/supabaseComments";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
-import { Layers, Heart, Swords, User, Monitor, Cloud, Search, ArrowUpDown, MessageSquare, Trash2 } from "lucide-react";
+import { Layers, Heart, Swords, User, Monitor, Cloud, Search, ArrowUpDown, MessageSquare, Trash2, X } from "lucide-react";
 
 export default function DecksPage() {
   const { t } = useTranslation();
@@ -29,6 +29,13 @@ export default function DecksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    deckId: string;
+    deckName: string;
+    type: "cloud" | "local";
+  } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     getCurrentUser().then(setCurrentUser);
@@ -96,20 +103,29 @@ export default function DecksPage() {
     }
   };
 
-  const handleDeleteLocal = (deckId: string) => {
-    if (!confirm(t.plaza_delete_confirm)) return;
-    deleteDeck(deckId);
-    setLocalDecks((prev) => prev.filter((d) => d.id !== deckId));
+  const requestDelete = (deckId: string, deckName: string, type: "cloud" | "local") => {
+    setConfirmModal({ deckId, deckName, type });
   };
 
-  const handleDeleteCloud = async (deckId: string) => {
-    if (!confirm(t.plaza_delete_confirm)) return;
+  const executeDelete = async () => {
+    if (!confirmModal) return;
+    const { deckId, type } = confirmModal;
+    setDeletingId(deckId);
+
     try {
-      await deleteCloudDeck(deckId);
-      setCloudDecks((prev) => prev.filter((d) => d.id !== deckId));
+      if (type === "local") {
+        deleteDeck(deckId);
+        setLocalDecks((prev) => prev.filter((d) => d.id !== deckId));
+      } else {
+        await deleteCloudDeck(deckId);
+        setCloudDecks((prev) => prev.filter((d) => d.id !== deckId));
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t.plaza_error;
       alert(msg);
+    } finally {
+      setDeletingId(null);
+      setConfirmModal(null);
     }
   };
 
@@ -296,12 +312,24 @@ export default function DecksPage() {
           decks={filteredAndSortedDecks as CloudDeck[]}
           likedIds={likedIds}
           onLike={handleLike}
-          onDelete={handleDeleteCloud}
+          onDelete={requestDelete}
           currentUserId={currentUser?.id}
           commentCounts={commentCounts}
         />
       ) : (
-        <LocalDeckList decks={filteredAndSortedDecks as SavedDeck[]} onDelete={handleDeleteLocal} />
+        <LocalDeckList decks={filteredAndSortedDecks as SavedDeck[]} onDelete={requestDelete} />
+      )}
+
+      {confirmModal && (
+        <ConfirmModal
+          title={t.plaza_delete_title}
+          message={t.plaza_delete_confirm.replace("{name}", confirmModal.deckName)}
+          confirmText={t.builder_confirm}
+          cancelText={t.builder_cancel}
+          isLoading={deletingId === confirmModal.deckId}
+          onConfirm={executeDelete}
+          onCancel={() => setConfirmModal(null)}
+        />
       )}
     </div>
   );
@@ -318,7 +346,7 @@ function CloudDeckList({
   decks: CloudDeck[];
   likedIds: Set<string>;
   onLike: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, name: string, type: "cloud") => void;
   currentUserId?: string;
   commentCounts: Record<string, number>;
 }) {
@@ -388,7 +416,7 @@ function CloudDeckList({
                 </button>
                 {isOwner && (
                   <button
-                    onClick={() => onDelete(deck.id)}
+                    onClick={() => onDelete(deck.id, deck.name, "cloud")}
                     className="rounded p-1 text-slate-600 transition hover:text-red-400"
                     title={t.plaza_delete}
                   >
@@ -450,7 +478,7 @@ function CloudDeckList({
   );
 }
 
-function LocalDeckList({ decks, onDelete }: { decks: SavedDeck[]; onDelete: (id: string) => void }) {
+function LocalDeckList({ decks, onDelete }: { decks: SavedDeck[]; onDelete: (id: string, name: string, type: "local") => void }) {
   const { t } = useTranslation();
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -488,7 +516,7 @@ function LocalDeckList({ decks, onDelete }: { decks: SavedDeck[]; onDelete: (id:
                   {t.plaza_local_tag}
                 </span>
                 <button
-                  onClick={() => onDelete(deck.id)}
+                  onClick={() => onDelete(deck.id, deck.name, "local")}
                   className="rounded p-1 text-slate-600 transition hover:text-red-400"
                   title={t.plaza_delete}
                 >
@@ -548,6 +576,61 @@ function LocalDeckList({ decks, onDelete }: { decks: SavedDeck[]; onDelete: (id:
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function ConfirmModal({
+  title,
+  message,
+  confirmText,
+  cancelText,
+  isLoading,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+  isLoading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-100">{title}</h3>
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300 disabled:opacity-50"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="mb-6 text-sm text-slate-400">{message}</p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700 disabled:opacity-50"
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-400 disabled:opacity-50"
+          >
+            {isLoading && (
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            )}
+            {confirmText}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

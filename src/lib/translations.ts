@@ -144,7 +144,8 @@ export const translations = {
     plaza_count_suffix: "套",
     plaza_anonymous: "匿名用户",
     plaza_delete: "删除",
-    plaza_delete_confirm: "确定删除这套卡组吗？",
+    plaza_delete_title: "删除卡组",
+    plaza_delete_confirm: "确定删除卡组「{name}」吗？",
 
     // Profile
     profile_title: "我的卡组",
@@ -359,7 +360,8 @@ export const translations = {
     plaza_count_suffix: " decks",
     plaza_anonymous: "Anonymous",
     plaza_delete: "Delete",
-    plaza_delete_confirm: "Are you sure you want to delete this deck?",
+    plaza_delete_title: "Delete Deck",
+    plaza_delete_confirm: "Are you sure you want to delete the deck \"{name}\"?",
 
     // Profile
     profile_title: "My Decks",
