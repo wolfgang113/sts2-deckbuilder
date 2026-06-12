@@ -1,22 +1,27 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Bug, Lightbulb, HelpCircle, Send, Trash2, Tag } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Bug, Lightbulb, HelpCircle, Send, Trash2, Tag, MessageCircle, User } from "lucide-react";
+import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import {
+  submitFeedback,
+  submitReply,
+  getFeedbackWithReplies,
+  deleteFeedback,
+  deleteFeedbackReply,
+  type FeedbackType,
+  type FeedbackWithReplies,
+} from "@/lib/supabaseFeedback";
 
-type FeedbackType = "bug" | "feature" | "other";
+type FeedbackTypeConfig = {
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+  border: string;
+};
 
-interface FeedbackItem {
-  id: string;
-  type: FeedbackType;
-  title: string;
-  content: string;
-  email: string;
-  createdAt: string;
-}
-
-const STORAGE_KEY = "sts2-feedback";
-
-const typeConfig: Record<FeedbackType, { label: string; icon: React.ReactNode; color: string; bg: string; border: string }> = {
+const typeConfig: Record<FeedbackType, FeedbackTypeConfig> = {
   bug: {
     label: "Bug 报告",
     icon: <Bug className="h-4 w-4" />,
@@ -40,57 +45,92 @@ const typeConfig: Record<FeedbackType, { label: string; icon: React.ReactNode; c
   },
 };
 
-function loadFeedback(): FeedbackItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as FeedbackItem[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveFeedback(items: FeedbackItem[]) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
+const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
 export default function FeedbackPage() {
-  const [items, setItems] = useState<FeedbackItem[]>(() => loadFeedback());
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [items, setItems] = useState<FeedbackWithReplies[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [type, setType] = useState<FeedbackType>("feature");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [email, setEmail] = useState("");
 
-  const handleSubmit = useCallback(() => {
+  const isAdmin = user ? (adminUserId ? user.id === adminUserId : false) : false;
+
+  const loadFeedback = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getFeedbackWithReplies();
+      setItems(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "加载反馈失败";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    getCurrentUser().then(setUser);
+    const timeout = setTimeout(() => {
+      loadFeedback();
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [loadFeedback]);
+
+  const handleSubmit = useCallback(async () => {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
     if (!trimmedTitle || !trimmedContent) return;
 
-    const newItem: FeedbackItem = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      type,
-      title: trimmedTitle,
-      content: trimmedContent,
-      email: email.trim(),
-      createdAt: new Date().toISOString(),
-    };
+    setSubmitting(true);
+    try {
+      await submitFeedback({
+        type,
+        title: trimmedTitle,
+        content: trimmedContent,
+        email: email.trim(),
+      });
+      await loadFeedback();
+      setTitle("");
+      setContent("");
+      setEmail("");
+      setType("feature");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "提交失败";
+      alert(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [type, title, content, email, loadFeedback]);
 
-    const all = loadFeedback();
-    all.push(newItem);
-    saveFeedback(all);
-    setItems(all);
-    setTitle("");
-    setContent("");
-    setEmail("");
-    setType("feature");
-  }, [type, title, content, email]);
+  const handleDelete = async (id: string) => {
+    if (!confirm("确定删除这条反馈吗？")) return;
+    await deleteFeedback(id);
+    setItems((prev) => prev.filter((item) => item.id !== id));
+  };
 
-  const handleDelete = useCallback((id: string) => {
-    const all = loadFeedback().filter((item) => item.id !== id);
-    saveFeedback(all);
-    setItems(all);
-  }, []);
+  const handleDeleteReply = async (feedbackId: string, replyId: string) => {
+    if (!confirm("确定删除这条回复吗？")) return;
+    await deleteFeedbackReply(replyId);
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === feedbackId
+          ? { ...item, replies: item.replies.filter((r) => r.id !== replyId) }
+          : item
+      )
+    );
+  };
+
+  const handleReply = async (feedbackId: string, content: string) => {
+    await submitReply({ feedbackId, content, isAdmin: isAdmin });
+    await loadFeedback();
+  };
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
@@ -107,14 +147,13 @@ export default function FeedbackPage() {
       </div>
 
       <p className="mb-6 text-sm text-slate-400">
-        遇到 Bug 或有新功能想法？欢迎在这里提交反馈。数据仅保存在你的浏览器本地。
+        遇到 Bug 或有新功能想法？欢迎在这里提交反馈。所有反馈会公开显示，管理员会进行回复。
       </p>
 
       {/* Submit Form */}
-      <div className="mb-8 rounded-xl border border-slate-800 bg-slate-900/50 p-6 space-y-4">
-        {/* Type Select */}
+      <div className="mb-8 space-y-4 rounded-xl border border-slate-800 bg-slate-900/50 p-6">
         <div>
-          <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">反馈类型</label>
+          <label className="mb-2 block text-xs font-medium uppercase text-slate-500">反馈类型</label>
           <div className="flex flex-wrap gap-2">
             {(Object.keys(typeConfig) as FeedbackType[]).map((t) => {
               const cfg = typeConfig[t];
@@ -137,9 +176,8 @@ export default function FeedbackPage() {
           </div>
         </div>
 
-        {/* Title */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500 uppercase">标题</label>
+          <label className="mb-1 block text-xs font-medium uppercase text-slate-500">标题</label>
           <input
             type="text"
             placeholder="简短描述问题或建议..."
@@ -149,9 +187,8 @@ export default function FeedbackPage() {
           />
         </div>
 
-        {/* Content */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500 uppercase">详细描述</label>
+          <label className="mb-1 block text-xs font-medium uppercase text-slate-500">详细描述</label>
           <textarea
             placeholder="请详细描述你遇到的问题或想提出的建议..."
             value={content}
@@ -166,9 +203,8 @@ export default function FeedbackPage() {
           />
         </div>
 
-        {/* Email (optional) */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-500 uppercase">
+          <label className="mb-1 block text-xs font-medium uppercase text-slate-500">
             联系邮箱 <span className="text-slate-600">(选填)</span>
           </label>
           <input
@@ -180,69 +216,196 @@ export default function FeedbackPage() {
           />
         </div>
 
-        {/* Submit */}
         <button
           onClick={handleSubmit}
-          disabled={!title.trim() || !content.trim()}
-          className="flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!title.trim() || !content.trim() || submitting}
+          className="flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Send className="h-4 w-4" />
-          提交反馈
+          {submitting ? "提交中..." : "提交反馈"}
         </button>
       </div>
 
       {/* Feedback List */}
-      {items.length === 0 ? (
-        <div className="py-12 text-center text-sm text-slate-600">
-          暂无反馈记录
-        </div>
+      {loading ? (
+        <div className="py-12 text-center text-sm text-slate-600">加载中...</div>
+      ) : error ? (
+        <div className="py-12 text-center text-sm text-red-400">{error}</div>
+      ) : items.length === 0 ? (
+        <div className="py-12 text-center text-sm text-slate-600">暂无反馈，来提交第一条吧</div>
       ) : (
-        <div className="space-y-3">
-          {[...items].reverse().map((item) => {
+        <div className="space-y-4">
+          {items.map((item) => {
             const cfg = typeConfig[item.type];
             return (
-              <div
+              <FeedbackCard
                 key={item.id}
-                className="group rounded-lg border border-slate-800 bg-slate-900/80 p-4 transition hover:border-slate-700"
-              >
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium ${cfg.bg} ${cfg.color} ${cfg.border} border`}
-                    >
-                      {cfg.icon}
-                      {cfg.label}
-                    </span>
-                    <span className="text-sm font-bold text-slate-100">
-                      {item.title}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="opacity-0 transition hover:text-red-400 group-hover:opacity-100 text-slate-600"
-                    title="删除"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <p className="mb-2 text-sm leading-relaxed text-slate-300">
-                  {item.content}
-                </p>
-
-                <div className="flex items-center gap-3 text-xs text-slate-500">
-                  <span>{formatTime(item.createdAt)}</span>
-                  {item.email && (
-                    <span className="flex items-center gap-1">
-                      <Tag className="h-3 w-3" />
-                      {item.email}
-                    </span>
-                  )}
-                </div>
-              </div>
+                item={item}
+                typeConfig={cfg}
+                user={user}
+                isAdmin={isAdmin}
+                formatTime={formatTime}
+                onDelete={handleDelete}
+                onReply={handleReply}
+                onDeleteReply={handleDeleteReply}
+              />
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+function FeedbackCard({
+  item,
+  typeConfig,
+  user,
+  isAdmin,
+  formatTime,
+  onDelete,
+  onReply,
+  onDeleteReply,
+}: {
+  item: FeedbackWithReplies;
+  typeConfig: FeedbackTypeConfig;
+  user: AuthUser | null;
+  isAdmin: boolean;
+  formatTime: (iso: string) => string;
+  onDelete: (id: string) => void;
+  onReply: (feedbackId: string, content: string) => Promise<void>;
+  onDeleteReply: (feedbackId: string, replyId: string) => void;
+}) {
+  const [replyContent, setReplyContent] = useState("");
+  const [replying, setReplying] = useState(false);
+  const [showReplyForm, setShowReplyForm] = useState(false);
+
+  const handleReplySubmit = async () => {
+    const trimmed = replyContent.trim();
+    if (!trimmed) return;
+    setReplying(true);
+    try {
+      await onReply(item.id, trimmed);
+      setReplyContent("");
+      setShowReplyForm(false);
+    } finally {
+      setReplying(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-slate-700">
+      <div className="mb-3 flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          <span
+            className={`flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium ${typeConfig.bg} ${typeConfig.color} ${typeConfig.border}`}
+          >
+            {typeConfig.icon}
+            {typeConfig.label}
+          </span>
+          <span className="text-sm font-bold text-slate-100">{item.title}</span>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => onDelete(item.id)}
+            className="text-slate-600 transition hover:text-red-400"
+            title="删除"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      <p className="mb-3 text-sm leading-relaxed text-slate-300">{item.content}</p>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+        <span className="flex items-center gap-1">
+          <User className="h-3 w-3" />
+          {item.display_name || item.email || "匿名用户"}
+        </span>
+        <span>{formatTime(item.created_at)}</span>
+        {item.email && (
+          <span className="flex items-center gap-1">
+            <Tag className="h-3 w-3" />
+            {item.email}
+          </span>
+        )}
+      </div>
+
+      {/* Replies */}
+      {item.replies.length > 0 && (
+        <div className="mb-4 space-y-3 border-t border-slate-800 pt-4">
+          {item.replies.map((reply) => (
+            <div key={reply.id} className="rounded-lg bg-slate-950/50 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-slate-300">
+                    {reply.display_name || "用户"}
+                  </span>
+                  {reply.is_admin && (
+                    <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
+                      管理员
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-600">{formatTime(reply.created_at)}</span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => onDeleteReply(item.id, reply.id)}
+                      className="text-slate-600 transition hover:text-red-400"
+                      title="删除"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-slate-400">{reply.content}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Reply Form */}
+      {user ? (
+        showReplyForm ? (
+          <div className="flex flex-col gap-2">
+            <textarea
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              placeholder={isAdmin ? "以管理员身份回复..." : "写下你的回复..."}
+              rows={2}
+              className="w-full resize-none rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowReplyForm(false)}
+                className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleReplySubmit}
+                disabled={!replyContent.trim() || replying}
+                className="flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-amber-400 disabled:opacity-50"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                {replying ? "回复中..." : "回复"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowReplyForm(true)}
+            className="mt-2 flex items-center gap-1 text-xs font-medium text-slate-400 transition hover:text-amber-400"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            {item.replies.length > 0 ? "继续回复" : "回复"}
+          </button>
+        )
+      ) : (
+        <p className="mt-2 text-xs text-slate-600">登录后可回复</p>
       )}
     </div>
   );
