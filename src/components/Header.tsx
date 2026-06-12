@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -29,6 +29,61 @@ export default function Header() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+
+  const navRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragState = useRef({ startX: 0, scrollLeft: 0, didDrag: false });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!navRef.current) return;
+    setIsDragging(true);
+    dragState.current = {
+      startX: e.pageX - navRef.current.offsetLeft,
+      scrollLeft: navRef.current.scrollLeft,
+      didDrag: false,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !navRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - navRef.current.offsetLeft;
+    const walk = (x - dragState.current.startX) * 1.2;
+    if (Math.abs(walk) > 3) dragState.current.didDrag = true;
+    navRef.current.scrollLeft = dragState.current.scrollLeft - walk;
+  };
+
+  const stopDragging = () => {
+    setIsDragging(false);
+    setTimeout(() => {
+      dragState.current.didDrag = false;
+    }, 50);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!navRef.current) return;
+    const canScrollLeft = navRef.current.scrollLeft > 0;
+    const canScrollRight =
+      navRef.current.scrollLeft <
+      navRef.current.scrollWidth - navRef.current.clientWidth;
+
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      if ((e.deltaY < 0 && canScrollLeft) || (e.deltaY > 0 && canScrollRight)) {
+        e.preventDefault();
+        navRef.current.scrollLeft += e.deltaY;
+      }
+    } else {
+      e.preventDefault();
+      navRef.current.scrollLeft += e.deltaX;
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (dragState.current.didDrag) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
 
   useEffect(() => {
     getCurrentUser().then((u) => {
@@ -72,7 +127,16 @@ export default function Header() {
           </Link>
           <div className="relative flex flex-1 min-w-0 items-center">
             <nav
-              className="flex flex-1 items-center gap-0.5 overflow-x-auto scroll-smooth whitespace-nowrap pb-1 pt-1 scrollbar-hide md:gap-1"
+              ref={navRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={stopDragging}
+              onMouseLeave={stopDragging}
+              onWheel={handleWheel}
+              onClick={handleClick}
+              className={`flex flex-1 items-center gap-0.5 overflow-x-auto scroll-smooth whitespace-nowrap pb-1 pt-1 scrollbar-hide md:gap-1 ${
+                isDragging ? "cursor-grabbing" : "cursor-grab"
+              }`}
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {navItems.map((item) => {
