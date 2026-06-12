@@ -52,21 +52,26 @@ CREATE POLICY "Allow users to delete own feedback" ON feedback
 CREATE POLICY "Allow users to delete own replies" ON feedback_replies
   FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
--- Admin can delete any feedback/reply
--- Replace 'YOUR_ADMIN_USER_ID' with your actual Supabase user UUID
-CREATE POLICY "Allow admin to delete any feedback" ON feedback
-  FOR DELETE TO authenticated USING (auth.uid() = 'YOUR_ADMIN_USER_ID');
-
-CREATE POLICY "Allow admin to delete any reply" ON feedback_replies
-  FOR DELETE TO authenticated USING (auth.uid() = 'YOUR_ADMIN_USER_ID');
-
 -- Indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON feedback(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_feedback_replies_feedback_id ON feedback_replies(feedback_id);
 
--- To find your admin user ID:
--- 1. Log into your website
--- 2. Go to Supabase Dashboard → Authentication → Users
--- 3. Find your user and copy the UUID
--- 4. Replace 'YOUR_ADMIN_USER_ID' in the policies above and re-run
--- 5. Also set NEXT_PUBLIC_ADMIN_USER_ID in Vercel environment variables
+/*
+-- ============================================================
+-- 管理员删除权限（可选）
+-- 先运行上面的 SQL 创建表，然后按以下步骤操作：
+-- 1. 登录你的网站
+-- 2. 去 Supabase → Authentication → Users 找到自己的用户 UUID
+-- 3. 把下面的 'YOUR_ADMIN_USER_ID' 替换成真实 UUID
+-- 4. 单独运行这段 SQL
+-- 5. 同时在 Vercel 环境变量里设置 NEXT_PUBLIC_ADMIN_USER_ID
+-- ============================================================
+
+DROP POLICY IF EXISTS "Allow admin to delete any feedback" ON feedback;
+CREATE POLICY "Allow admin to delete any feedback" ON feedback
+  FOR DELETE TO authenticated USING (auth.uid() = 'YOUR_ADMIN_USER_ID');
+
+DROP POLICY IF EXISTS "Allow admin to delete any reply" ON feedback_replies;
+CREATE POLICY "Allow admin to delete any reply" ON feedback_replies
+  FOR DELETE TO authenticated USING (auth.uid() = 'YOUR_ADMIN_USER_ID');
+*/
