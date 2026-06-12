@@ -69,6 +69,7 @@ export const translations = {
     builder_copy: "复制",
     builder_add: "添加",
     builder_remove: "移除",
+    builder_remove_all: "全部移除",
     builder_comments_hint: "将卡组保存到云端后即可查看和发表评论",
     builder_share_site: "sts2-deckbuilder.vercel.app · 杀戮尖塔2 卡组构建器",
 
@@ -77,10 +78,29 @@ export const translations = {
     type_skill: "技能",
     type_power: "能力",
     type_curse: "诅咒",
+    type_status: "状态",
+
+    // Rarities
+    rarity_basic: "基础",
+    rarity_common: "普通",
+    rarity_uncommon: "罕见",
+    rarity_rare: "稀有",
+    rarity_special: "特殊",
+    rarity_curse: "诅咒",
+    rarity_starter: "初始",
+    rarity_boss: "Boss",
+    rarity_shop: "商店",
+    rarity_event: "事件",
+
+    // Filters
+    filter_all: "全部",
 
     // Units
     unit_card: "张",
     unit_cards: "张卡牌",
+    unit_potion: "瓶",
+    unit_relic: "个",
+    unit_boss: "个",
     unit_more: "还有 {count} 张...",
 
     // Export
@@ -123,6 +143,8 @@ export const translations = {
     plaza_like_login: "请先登录后再点赞",
     plaza_count_suffix: "套",
     plaza_anonymous: "匿名用户",
+    plaza_delete: "删除",
+    plaza_delete_confirm: "确定删除这套卡组吗？",
 
     // Profile
     profile_title: "我的卡组",
@@ -152,6 +174,33 @@ export const translations = {
     auth_error_invalid: "邮箱或密码错误",
     auth_error_password_length: "密码长度至少6位",
     auth_error_required: "请输入昵称",
+
+    // Cards page
+    cards_title: "卡牌数据库",
+    cards_search_placeholder: "搜索卡牌名称或效果...",
+    cards_filter: "筛选",
+    cards_filter_character: "角色",
+    cards_filter_type: "类型",
+    cards_filter_rarity: "稀有度",
+    cards_empty: "没有找到匹配的卡牌",
+
+    // Potions page
+    potions_title: "药水数据库",
+    potions_search_placeholder: "搜索药水名称或效果...",
+    potions_empty: "没有找到匹配的药水",
+
+    // Relics page
+    relics_title: "遗物数据库",
+    relics_search_placeholder: "搜索遗物名称或效果...",
+    relics_empty: "没有找到匹配的遗物",
+
+    // Bosses page
+    bosses_title: "Boss 攻略",
+    bosses_search_placeholder: "搜索Boss名称、技能或策略...",
+    bosses_empty: "没有找到匹配的Boss",
+    bosses_abilities: "技能",
+    bosses_phases: "阶段变化",
+    bosses_strategy: "应对策略",
 
     // Comments
     comments_title: "卡组评论",
@@ -235,6 +284,7 @@ export const translations = {
     builder_export_title: "Deck Text",
     builder_add: "Add",
     builder_remove: "Remove",
+    builder_remove_all: "Remove All",
     builder_comments_hint: "Save deck to cloud to view and post comments",
     builder_share_site: "sts2-deckbuilder.vercel.app · Slay the Spire 2 Deck Builder",
 
@@ -243,10 +293,29 @@ export const translations = {
     type_skill: "Skill",
     type_power: "Power",
     type_curse: "Curse",
+    type_status: "Status",
+
+    // Rarities
+    rarity_basic: "Basic",
+    rarity_common: "Common",
+    rarity_uncommon: "Uncommon",
+    rarity_rare: "Rare",
+    rarity_special: "Special",
+    rarity_curse: "Curse",
+    rarity_starter: "Starter",
+    rarity_boss: "Boss",
+    rarity_shop: "Shop",
+    rarity_event: "Event",
+
+    // Filters
+    filter_all: "All",
 
     // Units
     unit_card: " cards",
     unit_cards: " cards",
+    unit_potion: " potions",
+    unit_relic: " relics",
+    unit_boss: " bosses",
     unit_more: "and {count} more...",
 
     // Export
@@ -289,6 +358,8 @@ export const translations = {
     plaza_like_login: "Please login to like",
     plaza_count_suffix: " decks",
     plaza_anonymous: "Anonymous",
+    plaza_delete: "Delete",
+    plaza_delete_confirm: "Are you sure you want to delete this deck?",
 
     // Profile
     profile_title: "My Decks",
@@ -318,6 +389,33 @@ export const translations = {
     auth_error_invalid: "Invalid email or password",
     auth_error_password_length: "Password must be at least 6 characters",
     auth_error_required: "Please enter a nickname",
+
+    // Cards page
+    cards_title: "Card Database",
+    cards_search_placeholder: "Search cards by name or effect...",
+    cards_filter: "Filter",
+    cards_filter_character: "Character",
+    cards_filter_type: "Type",
+    cards_filter_rarity: "Rarity",
+    cards_empty: "No cards found",
+
+    // Potions page
+    potions_title: "Potion Database",
+    potions_search_placeholder: "Search potions by name or effect...",
+    potions_empty: "No potions found",
+
+    // Relics page
+    relics_title: "Relic Database",
+    relics_search_placeholder: "Search relics by name or effect...",
+    relics_empty: "No relics found",
+
+    // Bosses page
+    bosses_title: "Boss Guide",
+    bosses_search_placeholder: "Search bosses by name, ability or strategy...",
+    bosses_empty: "No bosses found",
+    bosses_abilities: "Abilities",
+    bosses_phases: "Phase Changes",
+    bosses_strategy: "Strategy",
 
     // Comments
     comments_title: "Comments",

@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { characters } from "@/data/cards";
-import { getDeckCards, loadSavedDecks, type SavedDeck } from "@/lib/deckStorage";
+import { getDeckCards, loadSavedDecks, deleteDeck, type SavedDeck } from "@/lib/deckStorage";
 import {
   getPublicDecks,
   getLikedDeckIds,
   toggleLike,
+  deleteCloudDeck,
   type CloudDeck,
 } from "@/lib/supabaseDecks";
-import { getCurrentUser } from "@/lib/auth";
+import { getCommentCounts } from "@/lib/supabaseComments";
+import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
-import { Layers, Heart, Swords, User, Monitor, Cloud, Search, ArrowUpDown } from "lucide-react";
+import { Layers, Heart, Swords, User, Monitor, Cloud, Search, ArrowUpDown, MessageSquare, Trash2 } from "lucide-react";
 
 export default function DecksPage() {
   const { t } = useTranslation();
@@ -20,23 +22,19 @@ export default function DecksPage() {
   const [cloudDecks, setCloudDecks] = useState<CloudDeck[]>([]);
   const [localDecks, setLocalDecks] = useState<SavedDeck[]>([]);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [filterChar, setFilterChar] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "likes" | "oldest">("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    if (tab === "cloud") {
-      loadCloudDecks();
-    } else {
-      setLocalDecks(loadSavedDecks());
-      setLoading(false);
-      setError(null);
-    }
-  }, [filterChar, tab]);
+    getCurrentUser().then(setCurrentUser);
+  }, []);
 
-  const loadCloudDecks = async () => {
+  const loadCloudDecks = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -46,6 +44,11 @@ export default function DecksPage() {
       ]);
       setCloudDecks(publicDecks);
       setLikedIds(new Set(liked));
+
+      if (publicDecks.length > 0) {
+        const counts = await getCommentCounts(publicDecks.map((d) => d.id));
+        setCommentCounts(counts);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t.plaza_error;
       setError(msg);
@@ -53,7 +56,24 @@ export default function DecksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterChar, t]);
+
+  const loadLocalDecks = useCallback(() => {
+    setLocalDecks(loadSavedDecks());
+    setLoading(false);
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (tab === "cloud") {
+        loadCloudDecks();
+      } else {
+        loadLocalDecks();
+      }
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [tab, loadCloudDecks, loadLocalDecks]);
 
   const handleLike = async (deckId: string) => {
     try {
@@ -73,6 +93,23 @@ export default function DecksPage() {
       );
     } catch {
       alert(t.plaza_like_login);
+    }
+  };
+
+  const handleDeleteLocal = (deckId: string) => {
+    if (!confirm(t.plaza_delete_confirm)) return;
+    deleteDeck(deckId);
+    setLocalDecks((prev) => prev.filter((d) => d.id !== deckId));
+  };
+
+  const handleDeleteCloud = async (deckId: string) => {
+    if (!confirm(t.plaza_delete_confirm)) return;
+    try {
+      await deleteCloudDeck(deckId);
+      setCloudDecks((prev) => prev.filter((d) => d.id !== deckId));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t.plaza_error;
+      alert(msg);
     }
   };
 
@@ -259,9 +296,12 @@ export default function DecksPage() {
           decks={filteredAndSortedDecks as CloudDeck[]}
           likedIds={likedIds}
           onLike={handleLike}
+          onDelete={handleDeleteCloud}
+          currentUserId={currentUser?.id}
+          commentCounts={commentCounts}
         />
       ) : (
-        <LocalDeckList decks={filteredAndSortedDecks as SavedDeck[]} />
+        <LocalDeckList decks={filteredAndSortedDecks as SavedDeck[]} onDelete={handleDeleteLocal} />
       )}
     </div>
   );
@@ -271,10 +311,16 @@ function CloudDeckList({
   decks,
   likedIds,
   onLike,
+  onDelete,
+  currentUserId,
+  commentCounts,
 }: {
   decks: CloudDeck[];
   likedIds: Set<string>;
   onLike: (id: string) => void;
+  onDelete: (id: string) => void;
+  currentUserId?: string;
+  commentCounts: Record<string, number>;
 }) {
   const { t } = useTranslation();
   return (
@@ -296,7 +342,9 @@ function CloudDeckList({
             : "0";
 
         const isLiked = likedIds.has(deck.id);
+        const isOwner = currentUserId === deck.user_id;
         const authorName = deck.display_name ?? t.plaza_anonymous;
+        const commentCount = commentCounts[deck.id] || 0;
 
         return (
           <div
@@ -311,20 +359,43 @@ function CloudDeckList({
                 />
                 <h3 className="truncate font-bold text-slate-100">{deck.name}</h3>
               </div>
-              <button
-                onClick={() => onLike(deck.id)}
-                className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition ${
-                  isLiked
-                    ? "bg-rose-500/10 text-rose-400"
-                    : "bg-slate-800 text-slate-500 hover:text-rose-400"
-                }`}
-              >
-                <Heart
-                  className="h-3.5 w-3.5"
-                  fill={isLiked ? "currentColor" : "none"}
-                />
-                {deck.likes_count}
-              </button>
+              <div className="flex items-center gap-1">
+                <Link
+                  href={`/deckbuilder?cloud=${deck.id}`}
+                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition ${
+                    commentCount > 0
+                      ? "bg-sky-500/10 text-sky-400 hover:bg-sky-500/20"
+                      : "bg-slate-800 text-slate-500 hover:text-sky-400"
+                  }`}
+                  title={t.comments_title}
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  {commentCount}
+                </Link>
+                <button
+                  onClick={() => onLike(deck.id)}
+                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition ${
+                    isLiked
+                      ? "bg-rose-500/10 text-rose-400"
+                      : "bg-slate-800 text-slate-500 hover:text-rose-400"
+                  }`}
+                >
+                  <Heart
+                    className="h-3.5 w-3.5"
+                    fill={isLiked ? "currentColor" : "none"}
+                  />
+                  {deck.likes_count}
+                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => onDelete(deck.id)}
+                    className="rounded p-1 text-slate-600 transition hover:text-red-400"
+                    title={t.plaza_delete}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="mb-2 flex items-center gap-1.5 text-xs text-slate-500">
@@ -379,7 +450,7 @@ function CloudDeckList({
   );
 }
 
-function LocalDeckList({ decks }: { decks: SavedDeck[] }) {
+function LocalDeckList({ decks, onDelete }: { decks: SavedDeck[]; onDelete: (id: string) => void }) {
   const { t } = useTranslation();
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -412,9 +483,18 @@ function LocalDeckList({ decks }: { decks: SavedDeck[] }) {
                 />
                 <h3 className="truncate font-bold text-slate-100">{deck.name}</h3>
               </div>
-              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-500">
-                {t.plaza_local_tag}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-500">
+                  {t.plaza_local_tag}
+                </span>
+                <button
+                  onClick={() => onDelete(deck.id)}
+                  className="rounded p-1 text-slate-600 transition hover:text-red-400"
+                  title={t.plaza_delete}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             <div className="mb-3 flex flex-wrap gap-2 text-xs text-slate-400">
