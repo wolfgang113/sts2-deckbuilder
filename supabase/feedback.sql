@@ -45,13 +45,28 @@ CREATE POLICY "Allow anonymous feedback insert" ON feedback
 CREATE POLICY "Allow authenticated users to reply" ON feedback_replies
   FOR INSERT TO authenticated WITH CHECK (true);
 
--- Users can delete their own feedback; admin deletion is handled in app logic
+-- Users can delete their own feedback/replies
 CREATE POLICY "Allow users to delete own feedback" ON feedback
   FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 CREATE POLICY "Allow users to delete own replies" ON feedback_replies
   FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
+-- Admin can delete any feedback/reply
+-- Replace 'YOUR_ADMIN_USER_ID' with your actual Supabase user UUID
+CREATE POLICY "Allow admin to delete any feedback" ON feedback
+  FOR DELETE TO authenticated USING (auth.uid() = 'YOUR_ADMIN_USER_ID');
+
+CREATE POLICY "Allow admin to delete any reply" ON feedback_replies
+  FOR DELETE TO authenticated USING (auth.uid() = 'YOUR_ADMIN_USER_ID');
+
 -- Indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON feedback(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_feedback_replies_feedback_id ON feedback_replies(feedback_id);
+
+-- To find your admin user ID:
+-- 1. Log into your website
+-- 2. Go to Supabase Dashboard → Authentication → Users
+-- 3. Find your user and copy the UUID
+-- 4. Replace 'YOUR_ADMIN_USER_ID' in the policies above and re-run
+-- 5. Also set NEXT_PUBLIC_ADMIN_USER_ID in Vercel environment variables
