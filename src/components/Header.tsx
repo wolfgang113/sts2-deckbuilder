@@ -76,12 +76,15 @@ export default function Header() {
     return () => sub.unsubscribe();
   }, []);
 
-  // Use non-passive wheel listener so we can preventDefault page scroll
+  // Use document-level capture listener to intercept wheel before page scrolls
   useEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return;
+    const handleWheel = (e: WheelEvent) => {
+      const nav = navRef.current;
+      if (!nav) return;
 
-    const onWheel = (e: WheelEvent) => {
+      // Only handle wheel events originating inside the nav
+      if (!nav.contains(e.target as Node)) return;
+
       const hasOverflow = nav.scrollWidth > nav.clientWidth;
       if (!hasOverflow) return;
 
@@ -89,6 +92,7 @@ export default function Header() {
       const canScrollRight =
         nav.scrollLeft < nav.scrollWidth - nav.clientWidth;
 
+      // Shift + wheel → horizontal scroll
       if (e.shiftKey) {
         if ((e.deltaY < 0 && canScrollLeft) || (e.deltaY > 0 && canScrollRight)) {
           e.preventDefault();
@@ -97,17 +101,19 @@ export default function Header() {
         return;
       }
 
+      // Vertical wheel over nav → convert to horizontal scroll if possible
       if (Math.abs(e.deltaY) > 0) {
         const direction = e.deltaY > 0 ? 1 : -1;
         if ((direction < 0 && canScrollLeft) || (direction > 0 && canScrollRight)) {
           e.preventDefault();
+          e.stopPropagation();
           nav.scrollLeft += e.deltaY * 0.8;
         }
       }
     };
 
-    nav.addEventListener("wheel", onWheel, { passive: false });
-    return () => nav.removeEventListener("wheel", onWheel);
+    document.addEventListener("wheel", handleWheel, { passive: false, capture: true });
+    return () => document.removeEventListener("wheel", handleWheel, { capture: true });
   }, []);
 
   const navItems = [
