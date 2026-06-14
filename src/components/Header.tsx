@@ -96,17 +96,19 @@ export default function Header() {
       if (e.shiftKey) {
         if ((e.deltaY < 0 && canScrollLeft) || (e.deltaY > 0 && canScrollRight)) {
           e.preventDefault();
+          e.stopImmediatePropagation();
           nav.scrollLeft += e.deltaY;
         }
         return;
       }
 
-      // Vertical wheel over nav → convert to horizontal scroll if possible
+      // Vertical wheel over nav → always intercept to prevent page scroll,
+      // convert to horizontal nav scroll when possible
       if (Math.abs(e.deltaY) > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         const direction = e.deltaY > 0 ? 1 : -1;
         if ((direction < 0 && canScrollLeft) || (direction > 0 && canScrollRight)) {
-          e.preventDefault();
-          e.stopPropagation();
           nav.scrollLeft += e.deltaY * 0.8;
         }
       }
