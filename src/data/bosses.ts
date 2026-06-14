@@ -14,6 +14,7 @@ export interface Boss {
   abilities: BossAbility[];
   phases?: string;
   strategy: string;
+  image?: string;
 }
 
 export const bosses: Boss[] = [

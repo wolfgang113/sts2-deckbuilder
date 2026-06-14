@@ -5,6 +5,7 @@ export interface Potion {
   name: string;
   rarity: PotionRarity;
   description: string;
+  image?: string;
 }
 
 export const potions: Potion[] = [

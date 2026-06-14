@@ -6,6 +6,7 @@ export interface Relic {
   rarity: RelicRarity;
   description: string;
   flavorText?: string;
+  image?: string;
 }
 
 export const relics: Relic[] = [

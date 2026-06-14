@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Card, CardType, CardRarity } from "@/data/cards";
 import { characters } from "@/data/cards";
+import ItemImage from "./ItemImage";
 
 const typeConfig: Record<
   CardType | "Status",
@@ -148,17 +149,25 @@ export default function CardVisual({
 
       {/* Art area */}
       <div
-        className="flex-1 mx-2 mt-1 rounded-md border border-slate-800/50 bg-slate-950/40 flex items-center justify-center"
+        className="mx-2 mt-1 flex flex-1 items-center justify-center overflow-hidden rounded-md border border-slate-800/50 bg-slate-950/40"
         style={{
           background: `linear-gradient(135deg, ${characterInfo?.color}15 0%, transparent 60%), radial-gradient(ellipse at center, ${characterInfo?.color}10 0%, transparent 70%)`,
         }}
       >
-        <span
-          className="text-3xl font-black opacity-10"
-          style={{ color: characterInfo?.color }}
-        >
-          {config.label[0]}
-        </span>
+        <ItemImage
+          src={card.image}
+          alt={card.name}
+          className="h-full w-full"
+          placeholderClassName="h-full w-full"
+          fallback={
+            <span
+              className="text-3xl font-black opacity-10"
+              style={{ color: characterInfo?.color }}
+            >
+              {config.label[0]}
+            </span>
+          }
+        />
       </div>
 
       {/* Type badge */}
