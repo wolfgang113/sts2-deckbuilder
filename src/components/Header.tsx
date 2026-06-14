@@ -60,24 +60,6 @@ export default function Header() {
     }, 50);
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    if (!navRef.current) return;
-    const canScrollLeft = navRef.current.scrollLeft > 0;
-    const canScrollRight =
-      navRef.current.scrollLeft <
-      navRef.current.scrollWidth - navRef.current.clientWidth;
-
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      if ((e.deltaY < 0 && canScrollLeft) || (e.deltaY > 0 && canScrollRight)) {
-        e.preventDefault();
-        navRef.current.scrollLeft += e.deltaY;
-      }
-    } else {
-      e.preventDefault();
-      navRef.current.scrollLeft += e.deltaX;
-    }
-  };
-
   const handleClick = (e: React.MouseEvent) => {
     if (dragState.current.didDrag) {
       e.preventDefault();
@@ -92,6 +74,40 @@ export default function Header() {
     });
     const sub = onAuthStateChange((u) => setUser(u));
     return () => sub.unsubscribe();
+  }, []);
+
+  // Use non-passive wheel listener so we can preventDefault page scroll
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const onWheel = (e: WheelEvent) => {
+      const hasOverflow = nav.scrollWidth > nav.clientWidth;
+      if (!hasOverflow) return;
+
+      const canScrollLeft = nav.scrollLeft > 0;
+      const canScrollRight =
+        nav.scrollLeft < nav.scrollWidth - nav.clientWidth;
+
+      if (e.shiftKey) {
+        if ((e.deltaY < 0 && canScrollLeft) || (e.deltaY > 0 && canScrollRight)) {
+          e.preventDefault();
+          nav.scrollLeft += e.deltaY;
+        }
+        return;
+      }
+
+      if (Math.abs(e.deltaY) > 0) {
+        const direction = e.deltaY > 0 ? 1 : -1;
+        if ((direction < 0 && canScrollLeft) || (direction > 0 && canScrollRight)) {
+          e.preventDefault();
+          nav.scrollLeft += e.deltaY * 0.8;
+        }
+      }
+    };
+
+    nav.addEventListener("wheel", onWheel, { passive: false });
+    return () => nav.removeEventListener("wheel", onWheel);
   }, []);
 
   const navItems = [
@@ -132,12 +148,15 @@ export default function Header() {
               onMouseMove={handleMouseMove}
               onMouseUp={stopDragging}
               onMouseLeave={stopDragging}
-              onWheel={handleWheel}
               onClick={handleClick}
               className={`flex flex-1 items-center gap-0.5 overflow-x-auto scroll-smooth whitespace-nowrap pb-1 pt-1 scrollbar-hide md:gap-1 ${
                 isDragging ? "cursor-grabbing" : "cursor-grab"
               }`}
-              style={{ WebkitOverflowScrolling: "touch" }}
+              style={{
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+                touchAction: "pan-x pan-y pinch-zoom",
+              }}
             >
               {navItems.map((item) => {
                 const active = pathname === item.href;
