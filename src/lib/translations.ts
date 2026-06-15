@@ -71,7 +71,7 @@ export const translations = {
     builder_remove: "移除",
     builder_remove_all: "全部移除",
     builder_comments_hint: "将卡组保存到云端后即可查看和发表评论",
-    builder_share_site: "sts2-deckbuilder.vercel.app · 杀戮尖塔 卡组构建器",
+    builder_share_site: "stsdeck.com · 杀戮尖塔 卡组构建器",
 
     // Card types
     type_attack: "攻击",
@@ -287,7 +287,7 @@ export const translations = {
     builder_remove: "Remove",
     builder_remove_all: "Remove All",
     builder_comments_hint: "Save deck to cloud to view and post comments",
-    builder_share_site: "sts2-deckbuilder.vercel.app · Slay the Spire Deck Builder",
+    builder_share_site: "stsdeck.com · Slay the Spire Deck Builder",
 
     // Card types
     type_attack: "Attack",
