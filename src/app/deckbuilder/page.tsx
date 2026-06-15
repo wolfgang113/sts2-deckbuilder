@@ -93,18 +93,29 @@ export default function DeckBuilderPage() {
     }
   }, []);
 
-  const characterInfo = characters.find((c) => c.id === selectedCharacter);
-
-  const availableCards = cards.filter(
-    (c) => c.character === selectedCharacter && c.type !== "Curse"
+  const characterInfo = useMemo(
+    () => characters.find((c) => c.id === selectedCharacter),
+    [selectedCharacter]
   );
 
-  const addCard = (card: Card) => setDeck((prev) => [...prev, card]);
-  const removeCard = (index: number) => setDeck((prev) => prev.filter((_, i) => i !== index));
-  const clearDeck = () => {
+  const availableCards = useMemo(
+    () => cards.filter((c) => c.character === selectedCharacter && c.type !== "Curse"),
+    [selectedCharacter]
+  );
+
+  const addCard = useCallback((card: Card) => setDeck((prev) => [...prev, card]), []);
+  const removeCard = useCallback(
+    (index: number) => setDeck((prev) => prev.filter((_, i) => i !== index)),
+    []
+  );
+  const removeAllOfCard = useCallback(
+    (cardId: string) => setDeck((prev) => prev.filter((c) => c.id !== cardId)),
+    []
+  );
+  const clearDeck = useCallback(() => {
     setDeck([]);
     setCurrentDeckId(undefined);
-  };
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -117,20 +128,31 @@ export default function DeckBuilderPage() {
         const card = availableCards[num - 1];
         if (card) addCard(card);
       }
+
+      // Delete key to clear deck
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (deck.length > 0) {
+          clearDeck();
+          showToast(t.builder_clear, "success");
+        }
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [availableCards]);
+  }, [availableCards, deck.length, t, showToast]);
 
-  const handleCharacterSwitch = (char: Character) => {
-    if (deck.length > 0) {
-      setShowSwitchWarning(char);
-    } else {
-      setSelectedCharacter(char);
-    }
-  };
+  const handleCharacterSwitch = useCallback(
+    (char: Character) => {
+      if (deck.length > 0) {
+        setShowSwitchWarning(char);
+      } else {
+        setSelectedCharacter(char);
+      }
+    },
+    [deck.length]
+  );
 
-  const confirmSwitch = () => {
+  const confirmSwitch = useCallback(() => {
     if (showSwitchWarning) {
       setSelectedCharacter(showSwitchWarning);
       setDeck([]);
@@ -138,27 +160,34 @@ export default function DeckBuilderPage() {
       setCurrentDeckId(undefined);
       setShowSwitchWarning(null);
     }
-  };
+  }, [showSwitchWarning]);
 
-  const stats = {
-    total: deck.length,
-    attack: deck.filter((c) => c.type === "Attack").length,
-    skill: deck.filter((c) => c.type === "Skill").length,
-    power: deck.filter((c) => c.type === "Power").length,
-    curse: deck.filter((c) => c.type === "Curse").length,
-    avgCost:
-      deck.length > 0
-        ? (
-            deck.reduce((sum, c) => sum + (typeof c.cost === "number" ? c.cost : 0), 0) /
-            deck.length
-          ).toFixed(1)
-        : "0",
-  };
+  const stats = useMemo(
+    () => ({
+      total: deck.length,
+      attack: deck.filter((c) => c.type === "Attack").length,
+      skill: deck.filter((c) => c.type === "Skill").length,
+      power: deck.filter((c) => c.type === "Power").length,
+      curse: deck.filter((c) => c.type === "Curse").length,
+      avgCost:
+        deck.length > 0
+          ? (
+              deck.reduce((sum, c) => sum + (typeof c.cost === "number" ? c.cost : 0), 0) /
+              deck.length
+            ).toFixed(1)
+          : "0",
+    }),
+    [deck]
+  );
 
-  const costCurve = [0, 1, 2, 3].map((cost) => ({
-    cost,
-    count: deck.filter((c) => c.cost === cost).length,
-  }));
+  const costCurve = useMemo(
+    () =>
+      [0, 1, 2, 3].map((cost) => ({
+        cost,
+        count: deck.filter((c) => c.cost === cost).length,
+      })),
+    [deck]
+  );
 
   // Group deck cards by ID for display with counts
   const deckGrouped = useMemo(() => {
@@ -178,7 +207,7 @@ export default function DeckBuilderPage() {
     return groups;
   }, [deck]);
 
-  const handleSaveLocal = () => {
+  const handleSaveLocal = useCallback(() => {
     if (deck.length === 0) return;
     const saved = saveDeck({
       id: currentDeckId,
@@ -189,7 +218,7 @@ export default function DeckBuilderPage() {
     setCurrentDeckId(saved.id);
     setSavedDecks(loadSavedDecks());
     showToast(`${t.save_toast_local}：${saved.name}`, "success");
-  };
+  }, [deck, deckName, currentDeckId, selectedCharacter, t, showToast]);
 
   const handleSaveCloud = async () => {
     if (deck.length === 0 || !user) return;
@@ -223,29 +252,35 @@ export default function DeckBuilderPage() {
     }
   };
 
-  const handleLoad = (saved: SavedDeck) => {
-    setSelectedCharacter(saved.character);
-    setDeckName(saved.name);
-    setDeck(getDeckCards(saved.cardIds));
-    setCurrentDeckId(saved.id);
-    setCloudDeckId(undefined);
-    setShowSaved(false);
-    const url = encodeDeckToUrl({
-      name: saved.name,
-      character: saved.character,
-      cardIds: saved.cardIds,
-    });
-    router.replace(`/deckbuilder${url}`, { scroll: false });
-  };
+  const handleLoad = useCallback(
+    (saved: SavedDeck) => {
+      setSelectedCharacter(saved.character);
+      setDeckName(saved.name);
+      setDeck(getDeckCards(saved.cardIds));
+      setCurrentDeckId(saved.id);
+      setCloudDeckId(undefined);
+      setShowSaved(false);
+      const url = encodeDeckToUrl({
+        name: saved.name,
+        character: saved.character,
+        cardIds: saved.cardIds,
+      });
+      router.replace(`/deckbuilder${url}`, { scroll: false });
+    },
+    [router]
+  );
 
-  const handleDeleteSaved = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    deleteDeck(id);
-    setSavedDecks(loadSavedDecks());
-    if (currentDeckId === id) setCurrentDeckId(undefined);
-  };
+  const handleDeleteSaved = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      deleteDeck(id);
+      setSavedDecks(loadSavedDecks());
+      if (currentDeckId === id) setCurrentDeckId(undefined);
+    },
+    [currentDeckId]
+  );
 
-  const handleCopyLink = () => {
+  const handleCopyLink = useCallback(() => {
     const url = encodeDeckToUrl({
       name: deckName,
       character: selectedCharacter,
@@ -255,16 +290,19 @@ export default function DeckBuilderPage() {
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }, [deckName, selectedCharacter, deck]);
 
-  const typeLabels: Record<string, string> = {
-    Attack: t.type_attack,
-    Skill: t.type_skill,
-    Power: t.type_power,
-    Curse: t.type_curse,
-  };
+  const typeLabels = useMemo<Record<string, string>>(
+    () => ({
+      Attack: t.type_attack,
+      Skill: t.type_skill,
+      Power: t.type_power,
+      Curse: t.type_curse,
+    }),
+    [t]
+  );
 
-  const exportText = () => {
+  const exportText = useCallback(() => {
     const lines: string[] = [];
     lines.push(t.export_header.replace("{name}", deckName || t.builder_unnamed));
     lines.push(`${t.export_character}：${characterInfo?.name}`);
@@ -286,7 +324,7 @@ export default function DeckBuilderPage() {
       lines.push("");
     });
     return lines.join("\n");
-  };
+  }, [deck, deckName, t, stats, typeLabels, characterInfo]);
 
   const generateShareImage = useCallback(async () => {
     if (!shareRef.current || deck.length === 0) return;
@@ -297,7 +335,7 @@ export default function DeckBuilderPage() {
         scale: 2,
       });
       const link = document.createElement("a");
-      link.download = `sts2-deck-${Date.now()}.png`;
+      link.download = `sts-deck-${Date.now()}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (e) {
@@ -609,9 +647,13 @@ export default function DeckBuilderPage() {
                     <CardVisual card={card} compact />
                   </div>
                   {count > 1 && (
-                    <span className="shrink-0 rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-amber-400">
+                    <button
+                      onClick={() => removeAllOfCard(card.id)}
+                      className="shrink-0 rounded-md bg-slate-800 px-2 py-1 text-xs font-bold text-amber-400 transition hover:bg-red-500/20 hover:text-red-400"
+                      title={t.builder_remove_all}
+                    >
                       x{count}
-                    </span>
+                    </button>
                   )}
                   <div className="flex shrink-0 flex-col gap-0.5">
                     <button

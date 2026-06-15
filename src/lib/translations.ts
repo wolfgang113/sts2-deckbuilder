@@ -17,9 +17,9 @@ export const translations = {
     nav_sponsor: "赞助",
 
     // Home page
-    home_title_prefix: "杀戮尖塔2",
+    home_title_prefix: "杀戮尖塔",
     home_title_suffix: "卡组构建器",
-    home_subtitle: "在线构建、分享和探索杀戮尖塔2卡组。完整的卡牌数据库，便捷的组卡工具，一键生成分享图。",
+    home_subtitle: "在线构建、分享和探索杀戮尖塔卡组。完整的卡牌数据库，便捷的组卡工具，一键生成分享图。",
     home_start: "开始组卡",
     home_browse: "浏览卡牌",
     home_feature_cards: "完整卡牌库",
@@ -71,7 +71,7 @@ export const translations = {
     builder_remove: "移除",
     builder_remove_all: "全部移除",
     builder_comments_hint: "将卡组保存到云端后即可查看和发表评论",
-    builder_share_site: "sts2-deckbuilder.vercel.app · 杀戮尖塔2 卡组构建器",
+    builder_share_site: "sts2-deckbuilder.vercel.app · 杀戮尖塔 卡组构建器",
 
     // Card types
     type_attack: "攻击",
@@ -212,7 +212,7 @@ export const translations = {
     comments_error: "评论失败，请重试",
 
     // Footer
-    footer_name: "STS2 Deck Builder · 杀戮尖塔2 卡组构建器",
+    footer_name: "STS Deck Builder · 杀戮尖塔 卡组构建器",
     footer_sponsor: "在爱发电支持我们",
     footer_disclaimer: "本网站为粉丝制作的非官方辅助工具，与 Mega Crit Games 及 Slay the Spire 官方无关。游戏数据版权归 Mega Crit Games 所有。本站内容仅供学习交流使用。",
   },
@@ -233,9 +233,9 @@ export const translations = {
     nav_sponsor: "Sponsor",
 
     // Home page
-    home_title_prefix: "Slay the Spire 2",
+    home_title_prefix: "Slay the Spire",
     home_title_suffix: "Deck Builder",
-    home_subtitle: "Build, share and explore Slay the Spire 2 decks online. Complete card database, convenient deck building tool, one-click share image generation.",
+    home_subtitle: "Build, share and explore Slay the Spire decks online. Complete card database, convenient deck building tool, one-click share image generation.",
     home_start: "Start Building",
     home_browse: "Browse Cards",
     home_feature_cards: "Complete Card Library",
@@ -287,7 +287,7 @@ export const translations = {
     builder_remove: "Remove",
     builder_remove_all: "Remove All",
     builder_comments_hint: "Save deck to cloud to view and post comments",
-    builder_share_site: "sts2-deckbuilder.vercel.app · Slay the Spire 2 Deck Builder",
+    builder_share_site: "sts2-deckbuilder.vercel.app · Slay the Spire Deck Builder",
 
     // Card types
     type_attack: "Attack",
@@ -428,7 +428,7 @@ export const translations = {
     comments_error: "Failed to post comment, please retry",
 
     // Footer
-    footer_name: "STS2 Deck Builder · Slay the Spire 2 Deck Builder",
+    footer_name: "STS Deck Builder · Slay the Spire Deck Builder",
     footer_sponsor: "Support us on Afdian",
     footer_disclaimer: "This website is a fan-made unofficial tool, not affiliated with Mega Crit Games or Slay the Spire. Game data copyright belongs to Mega Crit Games. Content is for educational purposes only.",
   },

@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "杀戮尖塔2 卡组构建器 | Slay the Spire 2 Deck Builder",
-  description: "杀戮尖塔2 在线卡组构建与分享工具，卡牌数据库，卡组推荐",
+  title: "杀戮尖塔 卡组构建器 | Slay the Spire Deck Builder",
+  description: "杀戮尖塔 在线卡组构建与分享工具，卡牌数据库，卡组推荐",
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
         </I18nProvider>
         <footer className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
-          <p className="mb-2">STS2 Deck Builder · 杀戮尖塔2 卡组构建器</p>
+          <p className="mb-2">STS Deck Builder · 杀戮尖塔 卡组构建器</p>
           <p className="mb-3">
             <a href="https://ifdian.net/a/wolfgang113" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300">
               在爱发电支持我们

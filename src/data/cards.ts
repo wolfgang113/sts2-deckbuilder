@@ -15,7 +15,7 @@ export interface Card {
   tips?: string; // 原创攻略提示
 }
 
-// 示例数据框架 — 后续替换为 STS2 真实数据
+// 示例数据框架 — 后续替换为 STS 真实数据
 export const cards: Card[] = [
   // Ironclad 示例
   { id: "strike_r", name: "打击", character: "Ironclad", type: "Attack", rarity: "Basic", cost: 1, description: "造成 6 点伤害。", upgradedDescription: "造成 9 点伤害。" },

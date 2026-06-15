@@ -147,7 +147,7 @@ export default function Header() {
             className="mr-4 flex shrink-0 items-center gap-1.5 font-bold text-base text-amber-400 md:mr-8 md:text-lg md:gap-2"
           >
             <Swords className="h-5 w-5" />
-            <span>STS2 Deck</span>
+            <span>STS Deck</span>
           </Link>
           <div className="relative flex flex-1 min-w-0 items-center">
             <nav
