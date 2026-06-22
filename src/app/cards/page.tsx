@@ -10,34 +10,41 @@ import {
 } from "@/data/cards";
 import { Search, Filter } from "lucide-react";
 import CardVisual from "@/components/CardVisual";
+import { useTranslation } from "@/lib/i18n";
 
 const cardTypes: CardType[] = ["Attack", "Skill", "Power", "Curse"];
 const cardRarities: CardRarity[] = ["Basic", "Common", "Uncommon", "Rare", "Special"];
 
-const typeLabels: Record<CardType, string> = {
-  Attack: "攻击",
-  Skill: "技能",
-  Power: "能力",
-  Curse: "诅咒",
-  Status: "状态",
-};
-
-const rarityLabels: Record<CardRarity, string> = {
-  Basic: "基础",
-  Common: "普通",
-  Uncommon: "罕见",
-  Rare: "稀有",
-  Special: "特殊",
-  Curse: "诅咒",
-};
-
-
 export default function CardsPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [selectedCharacter, setSelectedCharacter] = useState<Character | "all">("all");
   const [selectedType, setSelectedType] = useState<CardType | "all">("all");
   const [selectedRarity, setSelectedRarity] = useState<CardRarity | "all">("all");
   const [showFilters, setShowFilters] = useState(false);
+
+  const typeLabels = useMemo(
+    () => ({
+      Attack: t.type_attack,
+      Skill: t.type_skill,
+      Power: t.type_power,
+      Curse: t.type_curse,
+      Status: t.type_status,
+    }),
+    [t]
+  );
+
+  const rarityLabels = useMemo(
+    () => ({
+      Basic: t.rarity_basic,
+      Common: t.rarity_common,
+      Uncommon: t.rarity_uncommon,
+      Rare: t.rarity_rare,
+      Special: t.rarity_special,
+      Curse: t.rarity_curse,
+    }),
+    [t]
+  );
 
   const filtered = useMemo(() => {
     return cards.filter((card) => {
@@ -58,9 +65,9 @@ export default function CardsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-slate-100">卡牌数据库</h1>
+        <h1 className="text-2xl font-bold text-slate-100">{t.cards_title}</h1>
         <span className="rounded-full bg-slate-800 px-3 py-0.5 text-xs text-slate-400">
-          {filtered.length} 张
+          {filtered.length}{t.unit_card}
         </span>
       </div>
 
@@ -70,7 +77,7 @@ export default function CardsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="搜索卡牌名称或效果..."
+            placeholder={t.cards_search_placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
@@ -85,7 +92,7 @@ export default function CardsPage() {
           }`}
         >
           <Filter className="h-4 w-4" />
-          筛选
+          {t.cards_filter}
         </button>
       </div>
 
@@ -94,12 +101,12 @@ export default function CardsPage() {
         <div className="mb-6 rounded-lg border border-slate-800 bg-slate-900/50 p-4 space-y-4">
           {/* Character filter */}
           <div>
-            <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">角色</label>
+            <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">{t.cards_filter_character}</label>
             <div className="flex flex-wrap gap-2">
               <FilterChip
                 active={selectedCharacter === "all"}
                 onClick={() => setSelectedCharacter("all")}
-                label="全部"
+                label={t.filter_all}
               />
               {characters.map((c) => (
                 <FilterChip
@@ -114,31 +121,31 @@ export default function CardsPage() {
           </div>
           {/* Type filter */}
           <div>
-            <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">类型</label>
+            <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">{t.cards_filter_type}</label>
             <div className="flex flex-wrap gap-2">
               <FilterChip
                 active={selectedType === "all"}
                 onClick={() => setSelectedType("all")}
-                label="全部"
+                label={t.filter_all}
               />
-              {cardTypes.map((t) => (
+              {cardTypes.map((tType) => (
                 <FilterChip
-                  key={t}
-                  active={selectedType === t}
-                  onClick={() => setSelectedType(t)}
-                  label={typeLabels[t]}
+                  key={tType}
+                  active={selectedType === tType}
+                  onClick={() => setSelectedType(tType)}
+                  label={typeLabels[tType]}
                 />
               ))}
             </div>
           </div>
           {/* Rarity filter */}
           <div>
-            <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">稀有度</label>
+            <label className="mb-2 block text-xs font-medium text-slate-500 uppercase">{t.cards_filter_rarity}</label>
             <div className="flex flex-wrap gap-2">
               <FilterChip
                 active={selectedRarity === "all"}
                 onClick={() => setSelectedRarity("all")}
-                label="全部"
+                label={t.filter_all}
               />
               {cardRarities.map((r) => (
                 <FilterChip
@@ -155,7 +162,7 @@ export default function CardsPage() {
 
       {/* Card Grid */}
       {filtered.length === 0 ? (
-        <div className="py-20 text-center text-slate-500">没有找到匹配的卡牌</div>
+        <div className="py-20 text-center text-slate-500">{t.cards_empty}</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((card) => (

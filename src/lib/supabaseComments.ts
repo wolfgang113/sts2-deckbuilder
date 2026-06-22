@@ -49,3 +49,19 @@ export async function deleteCloudComment(commentId: string) {
   const { error } = await supabase.from("comments").delete().eq("id", commentId);
   if (error) throw error;
 }
+
+export async function getCommentCounts(deckIds: string[]): Promise<Record<string, number>> {
+  if (deckIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from("comments")
+    .select("deck_id")
+    .in("deck_id", deckIds);
+
+  if (error) throw error;
+
+  const counts: Record<string, number> = {};
+  data?.forEach((c) => {
+    counts[c.deck_id] = (counts[c.deck_id] || 0) + 1;
+  });
+  return counts;
+}

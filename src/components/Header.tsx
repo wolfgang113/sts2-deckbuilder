@@ -12,6 +12,7 @@ import {
   FlaskConical,
   Diamond,
   Shield,
+  BookOpen,
   LogIn,
   ArrowLeft,
 } from "lucide-react";
@@ -123,6 +124,7 @@ export default function Header() {
     { href: "/cards", label: t.nav_cards, icon: Library },
     { href: "/deckbuilder", label: t.nav_deckbuilder, icon: Swords },
     { href: "/decks", label: t.nav_decks, icon: Layers },
+    { href: "/guides", label: t.nav_guides, icon: BookOpen },
     { href: "/relics", label: t.nav_relics, icon: Diamond },
     { href: "/potions", label: t.nav_potions, icon: FlaskConical },
     { href: "/bosses", label: t.nav_bosses, icon: Shield },

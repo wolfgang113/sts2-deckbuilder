@@ -22,19 +22,27 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  useEffect(() => {
-    loadComments();
-    getCurrentUser().then(setUser);
-  }, [deckId]);
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     try {
       const data = await getComments(deckId);
       setComments(data);
     } catch {
       // ignore
     }
-  };
+  }, [deckId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getComments(deckId).then((data) => {
+      if (!cancelled) setComments(data);
+    });
+    getCurrentUser().then((u) => {
+      if (!cancelled) setUser(u);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [deckId]);
 
   const handleSubmit = useCallback(async () => {
     const trimmed = content.trim();
@@ -50,7 +58,7 @@ export default function CommentSection({ deckId }: CommentSectionProps) {
     } finally {
       setLoading(false);
     }
-  }, [content, deckId, user]);
+  }, [content, deckId, user, loadComments, t.comments_error]);
 
   const handleDelete = useCallback(
     async (commentId: string) => {

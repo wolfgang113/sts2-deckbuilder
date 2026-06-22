@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
@@ -18,6 +18,29 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [hoveredDeckId, setHoveredDeckId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const loadDecks = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getMyDecks();
+      setDecks(data);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleDelete = useCallback(async (id: string) => {
+    if (!confirm(t.profile_delete_confirm)) return;
+    await deleteCloudDeck(id);
+    setDecks((prev) => prev.filter((d) => d.id !== id));
+  }, [t.profile_delete_confirm]);
 
   useEffect(() => {
     getCurrentUser().then((u) => {
@@ -28,23 +51,18 @@ export default function ProfilePage() {
       setUser(u);
       loadDecks();
     });
-  }, [router]);
+  }, [router, loadDecks]);
 
-  const loadDecks = async () => {
-    setLoading(true);
-    try {
-      const data = await getMyDecks();
-      setDecks(data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm(t.profile_delete_confirm)) return;
-    await deleteCloudDeck(id);
-    setDecks((prev) => prev.filter((d) => d.id !== id));
-  };
+  // Delete key to delete hovered deck
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Delete" && hoveredDeckId) {
+        handleDelete(hoveredDeckId);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [hoveredDeckId]);
 
   const togglePublic = async (deck: CloudDeck) => {
     await updateDeck(deck.id, { is_public: !deck.is_public });

@@ -71,8 +71,10 @@ export default function Home() {
             {t.home_coming_seeds}
           </li>
           <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-            {t.home_coming_guides}
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <Link href="/guides" className="text-emerald-400 hover:text-emerald-300 transition">
+              {t.home_coming_guides}
+            </Link>
           </li>
         </ul>
       </div>

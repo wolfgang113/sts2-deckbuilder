@@ -71,6 +71,7 @@ export default function DeckBuilderPage() {
 
     if (cloudId) {
       // Load from cloud
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadingCloud(true);
       getDeckById(cloudId).then((cloudDeck) => {
         if (cloudDeck) {
