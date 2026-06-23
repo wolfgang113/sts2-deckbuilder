@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import Header from "@/components/Header";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 import { I18nProvider } from "@/lib/i18n";
 
 const geistSans = Geist({
@@ -32,6 +34,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100">
         <I18nProvider>
           <Header />
+          <Suspense fallback={null}>
+            <AnalyticsTracker />
+          </Suspense>
           <main className="flex-1">{children}</main>
         </I18nProvider>
         <footer className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
