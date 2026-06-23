@@ -36,3 +36,17 @@ BEGIN
   LIMIT limit_count;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Add admin flag to profiles table
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+
+-- Allow users to read their own profile, including is_admin
+DROP POLICY IF EXISTS "Allow users to read own profile" ON profiles;
+CREATE POLICY "Allow users to read own profile" ON profiles
+  FOR SELECT TO authenticated USING (auth.uid() = id);
+
+-- Allow users to update their own display_name but not is_admin
+DROP POLICY IF EXISTS "Allow users to update own profile" ON profiles;
+CREATE POLICY "Allow users to update own profile" ON profiles
+  FOR UPDATE TO authenticated USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { getPageViewStats, type PageViewStats } from "@/lib/supabaseAnalytics";
 import { BarChart3, Eye, TrendingUp, Calendar, Globe, Lock } from "lucide-react";
 
-const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
-
 export default function StatsPage() {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [stats, setStats] = useState<PageViewStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,11 +21,25 @@ export default function StatsPage() {
         setLoading(false);
         return;
       }
-      getPageViewStats().then((data) => {
-        if (cancelled) return;
-        setStats(data);
-        setLoading(false);
-      });
+      supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", u.id)
+        .single()
+        .then(({ data }) => {
+          if (cancelled) return;
+          const admin = data?.is_admin === true;
+          setIsAdmin(admin);
+          if (!admin) {
+            setLoading(false);
+            return;
+          }
+          getPageViewStats().then((statsData) => {
+            if (cancelled) return;
+            setStats(statsData);
+            setLoading(false);
+          });
+        });
     });
     return () => {
       cancelled = true;
@@ -46,8 +60,6 @@ export default function StatsPage() {
       </div>
     );
   }
-
-  const isAdmin = adminUserId ? user.id === adminUserId : true;
 
   if (!isAdmin) {
     return (
