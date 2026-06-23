@@ -1,11 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import AuthModal from "@/components/AuthModal";
 
 export default function LoginPage() {
-  const router = useRouter();
-
   return (
     <div className="mx-auto max-w-md px-4 py-20">
       <div className="mb-8 text-center">
@@ -14,8 +11,8 @@ export default function LoginPage() {
       </div>
       <AuthModal
         isOpen={true}
-        onClose={() => router.push("/")}
-        onSuccess={() => router.push("/stats")}
+        onClose={() => { window.location.href = "/"; }}
+        onSuccess={() => { window.location.href = "/stats"; }}
       />
     </div>
   );
