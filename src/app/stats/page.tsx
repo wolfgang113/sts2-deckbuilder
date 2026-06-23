@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { getPageViewStats, type PageViewStats } from "@/lib/supabaseAnalytics";
-import { BarChart3, Eye, TrendingUp, Calendar, Globe } from "lucide-react";
+import { BarChart3, Eye, TrendingUp, Calendar, Globe, Lock } from "lucide-react";
+
+const adminUserId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
 export default function StatsPage() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -34,7 +36,24 @@ export default function StatsPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-slate-400">
         <BarChart3 className="mx-auto mb-4 h-12 w-12 text-slate-600" />
-        <p>请登录后查看统计数据</p>
+        <p className="mb-4">请登录后查看统计数据</p>
+        <a
+          href="/login"
+          className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
+        >
+          去登录
+        </a>
+      </div>
+    );
+  }
+
+  const isAdmin = adminUserId ? user.id === adminUserId : true;
+
+  if (!isAdmin) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-20 text-center text-slate-400">
+        <Lock className="mx-auto mb-4 h-12 w-12 text-slate-600" />
+        <p>你没有权限查看此页面</p>
       </div>
     );
   }
