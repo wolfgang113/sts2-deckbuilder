@@ -17,8 +17,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "杀戮尖塔 卡组构建器 | Slay the Spire Deck Builder",
-  description: "杀戮尖塔 在线卡组构建与分享工具，卡牌数据库，卡组推荐",
+  title: {
+    default: "STS Deck - 杀戮尖塔卡组构建器 | Slay the Spire Deck Builder",
+    template: "%s | STS Deck",
+  },
+  description: "杀戮尖塔在线卡组构建与分享工具。完整卡牌数据库、便捷的组卡器、一键生成分享图、攻略站。Build, share and explore Slay the Spire decks online.",
+  keywords: ["杀戮尖塔", "Slay the Spire", "卡组构建器", "deck builder", "卡牌数据库", "攻略"],
+  authors: [{ name: "STS Deck" }],
+  metadataBase: new URL("https://stsdeck.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "STS Deck - 杀戮尖塔卡组构建器",
+    description: "在线构建、分享和探索杀戮尖塔卡组。完整卡牌数据库，便捷组卡工具，一键生成分享图。",
+    url: "https://stsdeck.com",
+    siteName: "STS Deck",
+    locale: "zh_CN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "STS Deck - 杀戮尖塔卡组构建器",
+    description: "在线构建、分享和探索杀戮尖塔卡组。",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
 };
 
 export default function RootLayout({
