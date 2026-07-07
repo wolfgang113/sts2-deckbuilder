@@ -2,22 +2,11 @@
 
 import { useState } from "react";
 import { signIn, signUp } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 import { User, Lock, Mail } from "lucide-react";
 
 interface LoginFormProps {
   onSuccess: () => void;
-}
-
-async function waitForSession(timeoutMs = 3000): Promise<boolean> {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) return true;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  return false;
 }
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
@@ -45,8 +34,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       } else {
         await signIn(email, password);
       }
-      // Wait for session to be persisted before redirecting
-      await waitForSession();
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "";
