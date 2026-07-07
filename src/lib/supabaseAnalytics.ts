@@ -41,6 +41,34 @@ export interface PageViewStats {
 }
 
 export async function getPageViewStats(): Promise<PageViewStats> {
+  const { data, error } = await supabase.rpc("get_page_view_stats");
+  if (error || !data || !data[0]) {
+    return getPageViewStatsLegacy();
+  }
+
+  const row = data[0] as {
+    total: number;
+    today: number;
+    yesterday: number;
+    this_week: number;
+    this_month: number;
+    top_paths: { path: string; count: number }[] | null;
+  };
+
+  return {
+    total: Number(row.total) || 0,
+    today: Number(row.today) || 0,
+    yesterday: Number(row.yesterday) || 0,
+    thisWeek: Number(row.this_week) || 0,
+    thisMonth: Number(row.this_month) || 0,
+    topPaths: (row.top_paths || []).map((item) => ({
+      path: String(item.path),
+      count: Number(item.count) || 0,
+    })),
+  };
+}
+
+async function getPageViewStatsLegacy(): Promise<PageViewStats> {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
   const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString();

@@ -4,6 +4,7 @@ export interface AuthUser {
   id: string;
   email: string;
   displayName: string | null;
+  isAdmin?: boolean;
 }
 
 export async function signUp(email: string, password: string, displayName: string) {
@@ -53,6 +54,24 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     id: session.user.id,
     email: session.user.email!,
     displayName: profile?.display_name ?? null,
+  };
+}
+
+export async function getCurrentUserWithAdmin(): Promise<AuthUser | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, is_admin")
+    .eq("id", session.user.id)
+    .single();
+
+  return {
+    id: session.user.id,
+    email: session.user.email!,
+    displayName: profile?.display_name ?? null,
+    isAdmin: profile?.is_admin === true,
   };
 }
 

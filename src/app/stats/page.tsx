@@ -1,45 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCurrentUser, type AuthUser } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { getCurrentUserWithAdmin, type AuthUser } from "@/lib/auth";
 import { getPageViewStats, type PageViewStats } from "@/lib/supabaseAnalytics";
 import { BarChart3, Eye, TrendingUp, Calendar, Globe, Lock } from "lucide-react";
 
 export default function StatsPage() {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [stats, setStats] = useState<PageViewStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    getCurrentUser().then((u) => {
+    getCurrentUserWithAdmin().then((u) => {
       if (cancelled) return;
       setUser(u);
-      if (!u) {
+      if (!u?.isAdmin) {
         setLoading(false);
         return;
       }
-      supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", u.id)
-        .single()
-        .then(({ data }) => {
-          if (cancelled) return;
-          const admin = data?.is_admin === true;
-          setIsAdmin(admin);
-          if (!admin) {
-            setLoading(false);
-            return;
-          }
-          getPageViewStats().then((statsData) => {
-            if (cancelled) return;
-            setStats(statsData);
-            setLoading(false);
-          });
-        });
+      getPageViewStats().then((statsData) => {
+        if (cancelled) return;
+        setStats(statsData);
+        setLoading(false);
+      });
     });
     return () => {
       cancelled = true;
@@ -61,7 +45,7 @@ export default function StatsPage() {
     );
   }
 
-  if (!isAdmin) {
+  if (!user?.isAdmin) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-slate-400">
         <Lock className="mx-auto mb-4 h-12 w-12 text-slate-600" />
